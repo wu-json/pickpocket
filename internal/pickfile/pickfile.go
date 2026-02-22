@@ -31,7 +31,7 @@ func Discover(startDir string) (string, error) {
 
 	for {
 		candidate := filepath.Join(dir, Filename)
-		if _, err := os.Stat(candidate); err == nil {
+		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
 			return candidate, nil
 		}
 
