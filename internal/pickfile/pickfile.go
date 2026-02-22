@@ -11,7 +11,8 @@ const Filename = "pickpocket.json"
 
 // Pickfile represents the contents of a pickpocket.json file.
 type Pickfile struct {
-	Picks []Pick `json:"picks"`
+	Version int    `json:"version"`
+	Picks   []Pick `json:"picks"`
 }
 
 // Pick represents a single repository entry.

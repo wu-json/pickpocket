@@ -40,6 +40,7 @@ The `pickpocket.json` file is the source of truth for a project. It lives in the
 
 ```jsonc
 {
+  "version": 0,
   "picks": [
     {
       "url": "https://github.com/anthropics/claude-code.git",
@@ -59,6 +60,9 @@ The `pickpocket.json` file is the source of truth for a project. It lives in the
   ]
 }
 ```
+
+Top-level fields:
+- `version` (required) — schema version number. Currently `0`.
 
 Fields per entry:
 - `url` (required) — the git clone URL.

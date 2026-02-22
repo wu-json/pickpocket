@@ -1,4 +1,5 @@
 {
+  "version": 0,
   "picks": [
     {
       "url": "https://github.com/charmbracelet/bubbletea",

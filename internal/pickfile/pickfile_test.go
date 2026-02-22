@@ -80,6 +80,25 @@ func TestRoundTrip(t *testing.T) {
 	if len(loaded.Picks[0].Tags) != 2 {
 		t.Errorf("Tags mismatch: got %v", loaded.Picks[0].Tags)
 	}
+	if loaded.Version != 0 {
+		t.Errorf("Version mismatch: got %d, want 0", loaded.Version)
+	}
+}
+
+func TestVersionBackwardCompat(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, Filename)
+
+	// JSON without a "version" key — simulates a pre-version Pickfile
+	os.WriteFile(path, []byte(`{"picks":[]}`), 0644)
+
+	loaded, err := Load(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Version != 0 {
+		t.Errorf("expected Version 0 for legacy file, got %d", loaded.Version)
+	}
 }
 
 func TestOmitempty(t *testing.T) {
