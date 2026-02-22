@@ -518,10 +518,10 @@ At the end of this phase: the tool is usable end-to-end for the primary use case
 Ephemeral writable workspaces for agents.
 
 Deliverables:
-- [ ] `pick open <id>` — creates a git worktree in `/tmp/pickpocket/`, prints the path to stdout.
-- [ ] Worktree tracking in cache index (path, creation time).
-- [ ] **Automatic stale worktree pruning** — runs as a side effect of any `pick` command. Removes worktrees older than 24 hours or whose `/tmp` path no longer exists.
-- [ ] `pick open --clean` escape hatch for manual cleanup.
+- [x] `pick open <id>` — creates a git worktree in `/tmp/pickpocket/`, prints the path to stdout.
+- [x] Worktree tracking in cache index (path, creation time).
+- [x] **Automatic stale worktree pruning** — runs as a side effect of any `pick` command. Removes worktrees older than 24 hours or whose `/tmp` path no longer exists.
+- [x] `pick open --clean` escape hatch for manual cleanup.
 
 At the end of this phase: an agent can `pick open` a repo, get an isolated writable copy instantly, use it, and never think about cleanup.
 
