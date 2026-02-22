@@ -501,12 +501,12 @@ The implementation is broken into phases. Each phase produces a working, testabl
 Set up the Go module, Cobra CLI skeleton, and the foundational libraries everything else depends on.
 
 Deliverables:
-- [ ] `go.mod` with cobra, lipgloss, bubbles dependencies.
-- [ ] Cobra root command (`pick`) with `--help` wired up.
-- [ ] **URL normalization** — a `pkg/normalize` (or similar) package with functions to parse any git URL (HTTPS, SSH), strip `.git`, normalize to HTTPS, and derive the cache ID (`host/owner/repo@branch`). Fully unit-tested — this is load-bearing for everything that follows.
-- [ ] **Pickfile read/write** — a `pkg/pickfile` package that can load, modify, and write `.pickpocket` JSON. Includes Pickfile discovery (walk up from cwd). Unit-tested.
-- [ ] **Lockfile read/write** — same treatment. Load, modify, write `.pickpocket.lock`. Unit-tested.
-- [ ] **Cache index read/write** — a `pkg/cache` package that can load and write `~/.pickpocket/cache.json`. Unit-tested.
+- [x] `go.mod` with cobra, lipgloss, bubbles dependencies.
+- [x] Cobra root command (`pick`) with `--help` wired up.
+- [x] **URL normalization** — a `pkg/normalize` (or similar) package with functions to parse any git URL (HTTPS, SSH), strip `.git`, normalize to HTTPS, and derive the cache ID (`host/owner/repo@branch`). Fully unit-tested — this is load-bearing for everything that follows.
+- [x] **Pickfile read/write** — a `pkg/pickfile` package that can load, modify, and write `.pickpocket` JSON. Includes Pickfile discovery (walk up from cwd). Unit-tested.
+- [x] **Lockfile read/write** — same treatment. Load, modify, write `.pickpocket.lock`. Unit-tested.
+- [x] **Cache index read/write** — a `pkg/cache` package that can load and write `~/.pickpocket/cache.json`. Unit-tested.
 
 At the end of this phase: no user-facing commands work yet, but all the data layer is solid and tested.
 
