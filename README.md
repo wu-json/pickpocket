@@ -1,0 +1,55 @@
+# pickpocket
+
+A CLI tool for managing vendored git clones as LLM context.
+
+pickpocket lets you declare git repositories in a `.pickpocket` file, clone them into a global cache, and give your LLM coding agents fast, local access to external codebases as context.
+
+## How it works
+
+1. **Declare** repos in a `.pickpocket` file (the "Pickfile") at your project root
+2. **Install** them with `pick install` — clones go into a shared global cache (`~/.pickpocket/`)
+3. **Query** paths with `pick path --tag <tag>` so coding agents can read the code
+
+Same repo + branch is only cloned once, even across multiple projects. A lockfile (`.pickpocket.lock`) pins exact commits for reproducible setups across your team.
+
+## Local development
+
+**Prerequisites:** Go 1.21+, git
+
+```bash
+# Clone the repo
+git clone https://github.com/wu-json/pickpocket.git
+cd pickpocket
+
+# Install dependencies
+go mod download
+
+# Build
+go build -o pick .
+
+# Run
+./pick --help
+
+# Run tests
+go test ./...
+
+# Vet
+go vet ./...
+```
+
+## Project structure
+
+```
+main.go                     # Entry point
+cmd/
+  root.go                   # Cobra root command
+internal/
+  giturl/                   # URL parsing and normalization
+  pickfile/                 # .pickpocket file read/write/discovery
+  lockfile/                 # .pickpocket.lock file read/write
+  cache/                    # Global cache index (~/.pickpocket/cache.json)
+```
+
+## License
+
+MIT
