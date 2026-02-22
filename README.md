@@ -14,7 +14,7 @@ Same repo + branch is only cloned once, even across multiple projects. A lockfil
 
 ## Local development
 
-**Prerequisites:** Go 1.21+, git
+**Prerequisites:** Go 1.21+, git, [just](https://github.com/casey/just)
 
 ```bash
 # Clone the repo
@@ -24,18 +24,23 @@ cd pickpocket
 # Install dependencies
 go mod download
 
-# Build
-go build -o pick .
+# Build (injects version from VERSION file via ldflags)
+just build
 
 # Run
 ./pick --help
 
+# Check version
+./pick version
+
 # Run tests
-go test ./...
+just test
 
 # Vet
-go vet ./...
+just vet
 ```
+
+You can also use plain `go build -o pick .` — the version will show as `dev`.
 
 ## Project structure
 
