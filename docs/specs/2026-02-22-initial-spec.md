@@ -507,9 +507,9 @@ At the end of this phase: the core loop works. One person `pick`s repos, commits
 Read-only query commands. These are the primary interface for both humans and coding agents.
 
 Deliverables:
-- [ ] `pick list` — formatted table output with URL, branch, commit, tags. `--tag` filter. `--json` output.
-- [ ] `pick path` — newline-separated absolute paths. `--tag` filter. `--json` output.
-- [ ] `pick info <id>` — detailed view of a single pick (Pickfile entry + cache state).
+- [x] `pick list` — formatted table output with URL, branch, commit, tags. `--tag` filter. `--json` output.
+- [x] `pick path` — newline-separated absolute paths. `--tag` filter. `--json` output.
+- [x] `pick info <id>` — detailed view of a single pick (Pickfile entry + cache state).
 
 At the end of this phase: the tool is usable end-to-end for the primary use case (add repos, install them, query paths for agent context).
 
