@@ -74,3 +74,25 @@ func Checkout(repoDir, ref string) error {
 	}
 	return nil
 }
+
+// WorktreeAdd creates a new worktree at worktreePath checked out to the given commit.
+func WorktreeAdd(repoDir, worktreePath, commit string) error {
+	cmd := exec.Command("git", "-C", repoDir, "worktree", "add", "--detach", worktreePath, commit)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git worktree add in %s: %s: %w", repoDir, strings.TrimSpace(string(out)), err)
+	}
+	return nil
+}
+
+// WorktreeRemove removes the worktree at worktreePath.
+// Ignores errors if the worktree path doesn't exist.
+func WorktreeRemove(repoDir, worktreePath string) error {
+	if _, err := os.Stat(worktreePath); os.IsNotExist(err) {
+		return nil
+	}
+	cmd := exec.Command("git", "-C", repoDir, "worktree", "remove", "--force", worktreePath)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git worktree remove in %s: %s: %w", repoDir, strings.TrimSpace(string(out)), err)
+	}
+	return nil
+}

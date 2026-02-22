@@ -5,16 +5,25 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"time"
 )
 
 const indexFilename = "cache.json"
 
+// Worktree represents an ephemeral writable worktree created from a cached clone.
+type Worktree struct {
+	RepoID    string    `json:"repo_id"`
+	Path      string    `json:"path"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 // Index is the top-level cache index structure.
 type Index struct {
-	Version int          `json:"version"`
-	Repos   []CachedRepo `json:"repos"`
+	Version   int          `json:"version"`
+	Repos     []CachedRepo `json:"repos"`
+	Worktrees []Worktree   `json:"worktrees,omitempty"`
 }
 
 // CachedRepo represents a cached git clone.
@@ -122,4 +131,50 @@ func (idx *Index) FindRepo(id string) *CachedRepo {
 		}
 	}
 	return nil
+}
+
+// AddWorktree appends a worktree entry to the index.
+func (idx *Index) AddWorktree(wt Worktree) {
+	idx.Worktrees = append(idx.Worktrees, wt)
+}
+
+// RemoveWorktree removes a worktree entry by path. Returns true if found.
+func (idx *Index) RemoveWorktree(path string) bool {
+	for i, wt := range idx.Worktrees {
+		if wt.Path == path {
+			idx.Worktrees = append(idx.Worktrees[:i], idx.Worktrees[i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+// PruneWorktrees removes entries older than 24h or whose Path no longer exists on disk.
+// For each removed entry, it calls git worktree remove on the cached clone via the
+// repoDir function which maps a RepoID to the clone's absolute path.
+func (idx *Index) PruneWorktrees(repoDir func(repoID string) string) []Worktree {
+	cutoff := time.Now().Add(-24 * time.Hour)
+	var keep []Worktree
+	var removed []Worktree
+
+	for _, wt := range idx.Worktrees {
+		stale := wt.CreatedAt.Before(cutoff)
+		_, statErr := os.Stat(wt.Path)
+		missing := statErr != nil
+
+		if stale || missing {
+			if !missing {
+				dir := repoDir(wt.RepoID)
+				if dir != "" {
+					exec.Command("git", "-C", dir, "worktree", "remove", "--force", wt.Path).Run()
+				}
+			}
+			removed = append(removed, wt)
+		} else {
+			keep = append(keep, wt)
+		}
+	}
+
+	idx.Worktrees = keep
+	return removed
 }

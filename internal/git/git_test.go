@@ -202,6 +202,59 @@ func TestCheckoutInvalidRef(t *testing.T) {
 	}
 }
 
+func TestWorktreeAddAndRemove(t *testing.T) {
+	bareDir := setupBareRepo(t)
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+
+	sha, err := Clone(bareDir, "main", cloneDir)
+	if err != nil {
+		t.Fatalf("Clone() error: %v", err)
+	}
+
+	wtPath := filepath.Join(t.TempDir(), "worktree")
+
+	// Add worktree
+	if err := WorktreeAdd(cloneDir, wtPath, sha); err != nil {
+		t.Fatalf("WorktreeAdd() error: %v", err)
+	}
+
+	// Verify worktree exists and has correct commit
+	if _, err := os.Stat(wtPath); err != nil {
+		t.Fatalf("worktree dir not created: %v", err)
+	}
+
+	gotSHA, err := HeadCommit(wtPath)
+	if err != nil {
+		t.Fatalf("HeadCommit in worktree: %v", err)
+	}
+	if gotSHA != sha {
+		t.Errorf("worktree HEAD = %q, want %q", gotSHA, sha)
+	}
+
+	// Remove worktree
+	if err := WorktreeRemove(cloneDir, wtPath); err != nil {
+		t.Fatalf("WorktreeRemove() error: %v", err)
+	}
+
+	if _, err := os.Stat(wtPath); !os.IsNotExist(err) {
+		t.Errorf("expected worktree dir to be removed, but it still exists")
+	}
+}
+
+func TestWorktreeRemoveNonexistent(t *testing.T) {
+	bareDir := setupBareRepo(t)
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+
+	if _, err := Clone(bareDir, "main", cloneDir); err != nil {
+		t.Fatalf("Clone() error: %v", err)
+	}
+
+	// Should not error when path doesn't exist
+	if err := WorktreeRemove(cloneDir, "/nonexistent/worktree/path"); err != nil {
+		t.Errorf("WorktreeRemove() should not error for nonexistent path, got: %v", err)
+	}
+}
+
 func TestDefaultBranch(t *testing.T) {
 	// Network test — skip if we can't reach github.com
 	branch, err := DefaultBranch("https://github.com/charmbracelet/lipgloss")

@@ -161,3 +161,125 @@ func TestDefaultDir(t *testing.T) {
 		t.Errorf("expected .pickpocket dir, got %q", filepath.Base(dir))
 	}
 }
+
+func TestAddWorktree(t *testing.T) {
+	idx := &Index{Version: 1}
+	wt := Worktree{RepoID: "a@main", Path: "/tmp/pickpocket/repo-main-abc1234", CreatedAt: time.Now()}
+	idx.AddWorktree(wt)
+
+	if len(idx.Worktrees) != 1 {
+		t.Fatalf("expected 1 worktree, got %d", len(idx.Worktrees))
+	}
+	if idx.Worktrees[0].Path != wt.Path {
+		t.Errorf("path mismatch: got %q", idx.Worktrees[0].Path)
+	}
+}
+
+func TestRemoveWorktree(t *testing.T) {
+	idx := &Index{Version: 1}
+	idx.AddWorktree(Worktree{RepoID: "a@main", Path: "/tmp/pickpocket/a"})
+	idx.AddWorktree(Worktree{RepoID: "b@main", Path: "/tmp/pickpocket/b"})
+
+	if !idx.RemoveWorktree("/tmp/pickpocket/a") {
+		t.Error("expected RemoveWorktree to return true")
+	}
+	if len(idx.Worktrees) != 1 {
+		t.Fatalf("expected 1 worktree after removal, got %d", len(idx.Worktrees))
+	}
+	if idx.Worktrees[0].Path != "/tmp/pickpocket/b" {
+		t.Errorf("expected remaining worktree b, got %q", idx.Worktrees[0].Path)
+	}
+	if idx.RemoveWorktree("/tmp/pickpocket/a") {
+		t.Error("expected RemoveWorktree to return false for missing entry")
+	}
+}
+
+func TestPruneWorktreesMissingPath(t *testing.T) {
+	idx := &Index{Version: 1}
+	idx.AddWorktree(Worktree{
+		RepoID:    "a@main",
+		Path:      "/tmp/pickpocket/nonexistent-dir-xyz",
+		CreatedAt: time.Now(),
+	})
+
+	removed := idx.PruneWorktrees(func(repoID string) string { return "" })
+
+	if len(removed) != 1 {
+		t.Fatalf("expected 1 removed, got %d", len(removed))
+	}
+	if len(idx.Worktrees) != 0 {
+		t.Errorf("expected 0 worktrees after prune, got %d", len(idx.Worktrees))
+	}
+}
+
+func TestPruneWorktreesStale(t *testing.T) {
+	dir := t.TempDir()
+
+	idx := &Index{Version: 1}
+	idx.AddWorktree(Worktree{
+		RepoID:    "a@main",
+		Path:      dir, // exists on disk
+		CreatedAt: time.Now().Add(-25 * time.Hour),
+	})
+
+	removed := idx.PruneWorktrees(func(repoID string) string { return "" })
+
+	if len(removed) != 1 {
+		t.Fatalf("expected 1 removed, got %d", len(removed))
+	}
+	if len(idx.Worktrees) != 0 {
+		t.Errorf("expected 0 worktrees after prune, got %d", len(idx.Worktrees))
+	}
+}
+
+func TestPruneWorktreesKeepsFresh(t *testing.T) {
+	dir := t.TempDir()
+
+	idx := &Index{Version: 1}
+	idx.AddWorktree(Worktree{
+		RepoID:    "a@main",
+		Path:      dir, // exists on disk
+		CreatedAt: time.Now(),
+	})
+
+	removed := idx.PruneWorktrees(func(repoID string) string { return "" })
+
+	if len(removed) != 0 {
+		t.Fatalf("expected 0 removed, got %d", len(removed))
+	}
+	if len(idx.Worktrees) != 1 {
+		t.Errorf("expected 1 worktree kept, got %d", len(idx.Worktrees))
+	}
+}
+
+func TestWorktreeRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	path := IndexPath(dir)
+
+	now := time.Now().Truncate(time.Second)
+	original := &Index{
+		Version: 1,
+		Worktrees: []Worktree{
+			{RepoID: "a@main", Path: "/tmp/pickpocket/test", CreatedAt: now},
+		},
+	}
+
+	if err := Write(path, original); err != nil {
+		t.Fatal(err)
+	}
+
+	loaded, err := LoadIndex(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(loaded.Worktrees) != 1 {
+		t.Fatalf("expected 1 worktree, got %d", len(loaded.Worktrees))
+	}
+	if loaded.Worktrees[0].RepoID != "a@main" {
+		t.Errorf("RepoID mismatch: got %q", loaded.Worktrees[0].RepoID)
+	}
+	if loaded.Worktrees[0].Path != "/tmp/pickpocket/test" {
+		t.Errorf("Path mismatch: got %q", loaded.Worktrees[0].Path)
+	}
+}
