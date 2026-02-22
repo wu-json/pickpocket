@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -87,6 +88,117 @@ func TestHeadCommitInvalidDir(t *testing.T) {
 	_, err := HeadCommit("/nonexistent/dir")
 	if err == nil {
 		t.Error("expected error for invalid dir, got nil")
+	}
+}
+
+// addCommitToBare clones the bare repo, adds a commit, pushes, and returns the new SHA.
+func addCommitToBare(t *testing.T, bareDir string) string {
+	t.Helper()
+
+	tmpDir := filepath.Join(t.TempDir(), "pusher")
+	cmd := exec.Command("git", "clone", bareDir, tmpDir)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("clone for push: %s: %v", out, err)
+	}
+
+	run := func(args ...string) {
+		t.Helper()
+		c := exec.Command("git", args...)
+		c.Dir = tmpDir
+		c.Env = append(os.Environ(),
+			"GIT_AUTHOR_NAME=test",
+			"GIT_AUTHOR_EMAIL=test@test.com",
+			"GIT_COMMITTER_NAME=test",
+			"GIT_COMMITTER_EMAIL=test@test.com",
+		)
+		if out, err := c.CombinedOutput(); err != nil {
+			t.Fatalf("git %v: %s: %v", args, out, err)
+		}
+	}
+
+	run("commit", "--allow-empty", "-m", "extra commit")
+	run("push", "origin", "main")
+
+	sha, err := HeadCommit(tmpDir)
+	if err != nil {
+		t.Fatalf("HeadCommit after push: %v", err)
+	}
+	return sha
+}
+
+func TestFetch(t *testing.T) {
+	bareDir := setupBareRepo(t)
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+
+	if _, err := Clone(bareDir, "main", cloneDir); err != nil {
+		t.Fatalf("Clone() error: %v", err)
+	}
+
+	// Add a new commit to the bare repo
+	newSHA := addCommitToBare(t, bareDir)
+
+	// Fetch should bring in the new commit
+	if err := Fetch(cloneDir); err != nil {
+		t.Fatalf("Fetch() error: %v", err)
+	}
+
+	// origin/main should now point to the new commit
+	cmd := exec.Command("git", "-C", cloneDir, "rev-parse", "origin/main")
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("rev-parse origin/main: %v", err)
+	}
+	got := strings.TrimSpace(string(out))
+	if got != newSHA {
+		t.Errorf("origin/main = %q, want %q", got, newSHA)
+	}
+}
+
+func TestFetchInvalidDir(t *testing.T) {
+	if err := Fetch("/nonexistent/dir"); err == nil {
+		t.Error("expected error for invalid dir, got nil")
+	}
+}
+
+func TestCheckout(t *testing.T) {
+	bareDir := setupBareRepo(t)
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+
+	initialSHA, err := Clone(bareDir, "main", cloneDir)
+	if err != nil {
+		t.Fatalf("Clone() error: %v", err)
+	}
+
+	// Add a second commit and fetch it
+	addCommitToBare(t, bareDir)
+	if err := Fetch(cloneDir); err != nil {
+		t.Fatalf("Fetch() error: %v", err)
+	}
+
+	// Checkout the initial commit
+	if err := Checkout(cloneDir, initialSHA); err != nil {
+		t.Fatalf("Checkout() error: %v", err)
+	}
+
+	got, err := HeadCommit(cloneDir)
+	if err != nil {
+		t.Fatalf("HeadCommit() error: %v", err)
+	}
+	if got != initialSHA {
+		t.Errorf("HeadCommit() = %q, want %q", got, initialSHA)
+	}
+}
+
+func TestCheckoutInvalidRef(t *testing.T) {
+	bareDir := setupBareRepo(t)
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+
+	if _, err := Clone(bareDir, "main", cloneDir); err != nil {
+		t.Fatalf("Clone() error: %v", err)
+	}
+
+	if err := Checkout(cloneDir, "nonexistent-ref-abc123"); err == nil {
+		t.Error("expected error for invalid ref, got nil")
 	}
 }
 

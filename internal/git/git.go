@@ -56,3 +56,21 @@ func HeadCommit(repoDir string) (string, error) {
 	}
 	return strings.TrimSpace(string(out)), nil
 }
+
+// Fetch fetches the latest refs from origin in the given repo directory.
+func Fetch(repoDir string) error {
+	cmd := exec.Command("git", "-C", repoDir, "fetch", "origin")
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git fetch in %s: %s: %w", repoDir, strings.TrimSpace(string(out)), err)
+	}
+	return nil
+}
+
+// Checkout checks out the given ref (branch, tag, or commit SHA) in the repo directory.
+func Checkout(repoDir, ref string) error {
+	cmd := exec.Command("git", "-C", repoDir, "checkout", ref)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git checkout %s in %s: %s: %w", ref, repoDir, strings.TrimSpace(string(out)), err)
+	}
+	return nil
+}
