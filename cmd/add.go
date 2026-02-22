@@ -82,9 +82,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		Branch: branch,
 		Tags:   addTags,
 	}
-	if err := pf.AddPick(pick); err != nil {
-		return fmt.Errorf("duplicate: %s@%s already in Pickfile", normalizedURL, branch)
-	}
+	alreadyInPickfile := pf.AddPick(pick) != nil
 
 	// 5. Check cache
 	cacheDir, err := cache.DefaultDir()
@@ -132,9 +130,11 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// 7. Write Pickfile (only after successful clone)
-	if err := pickfile.Write(pfPath, pf); err != nil {
-		return fmt.Errorf("writing %s: %w", pickfile.Filename, err)
+	// 7. Write Pickfile (only after successful clone, skip if already present)
+	if !alreadyInPickfile {
+		if err := pickfile.Write(pfPath, pf); err != nil {
+			return fmt.Errorf("writing %s: %w", pickfile.Filename, err)
+		}
 	}
 
 	// 8. Load or create lockfile, update entry
@@ -158,7 +158,11 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("writing lockfile: %w", err)
 	}
 
-	fmt.Fprintln(os.Stderr, styles.success.Render(fmt.Sprintf("Added %s@%s", normalizedURL, branch)))
+	if alreadyInPickfile {
+		fmt.Fprintln(os.Stderr, styles.success.Render(fmt.Sprintf("Already picked %s@%s", normalizedURL, branch)))
+	} else {
+		fmt.Fprintln(os.Stderr, styles.success.Render(fmt.Sprintf("Added %s@%s", normalizedURL, branch)))
+	}
 	return nil
 }
 
