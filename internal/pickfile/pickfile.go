@@ -18,6 +18,7 @@ type Pickfile struct {
 type Pick struct {
 	URL    string   `json:"url"`
 	Branch string   `json:"branch,omitempty"`
+	Commit string   `json:"commit,omitempty"`
 	Tags   []string `json:"tags,omitempty"`
 }
 

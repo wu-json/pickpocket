@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,7 +12,6 @@ import (
 	"github.com/wu-json/pickpocket/internal/cache"
 	"github.com/wu-json/pickpocket/internal/git"
 	"github.com/wu-json/pickpocket/internal/giturl"
-	"github.com/wu-json/pickpocket/internal/lockfile"
 	"github.com/wu-json/pickpocket/internal/pickfile"
 )
 
@@ -120,32 +118,19 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// 7. Write Pickfile (only after successful clone, skip if already present)
-	if !alreadyInPickfile {
-		if err := pickfile.Write(pfPath, pf); err != nil {
-			return fmt.Errorf("writing %s: %w", pickfile.Filename, err)
+	// 7. Write commit into pick and save Pickfile
+	if alreadyInPickfile {
+		// Update commit on the existing pick if it changed
+		existing := pf.FindPick(normalizedURL, branch)
+		if existing != nil && existing.Commit != commitSHA {
+			existing.Commit = commitSHA
 		}
+	} else {
+		// Set commit on the newly added pick (last element)
+		pf.Picks[len(pf.Picks)-1].Commit = commitSHA
 	}
-
-	// 8. Load or create lockfile, update entry
-	lfDir := filepath.Dir(pfPath)
-	lfPath := filepath.Join(lfDir, lockfile.Filename)
-	lf, err := lockfile.Load(lfPath)
-	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			lf = &lockfile.Lockfile{}
-		} else {
-			return fmt.Errorf("loading lockfile: %w", err)
-		}
-	}
-
-	lf.SetEntry(lockfile.LockedPick{
-		URL:    normalizedURL,
-		Branch: branch,
-		Commit: commitSHA,
-	})
-	if err := lockfile.Write(lfPath, lf); err != nil {
-		return fmt.Errorf("writing lockfile: %w", err)
+	if err := pickfile.Write(pfPath, pf); err != nil {
+		return fmt.Errorf("writing %s: %w", pickfile.Filename, err)
 	}
 
 	repo := parsed.Owner + "/" + parsed.Repo

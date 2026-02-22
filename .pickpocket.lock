@@ -1,9 +1,0 @@
-{
-  "locked": [
-    {
-      "url": "https://github.com/charmbracelet/bubbletea",
-      "branch": "main",
-      "commit": "13d882c274bab620b178beac5cce81ed748900bb"
-    }
-  ]
-}

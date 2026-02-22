@@ -13,7 +13,6 @@ The CLI provides a beautiful, well-animated command-line experience.
 
 - **Pick**: A vendored git clone managed by pickpocket.
 - **Pickfile**: The primary manifest — a `.pickpocket` file in a project's root, committed to version control. Declares which repos the project uses for context, along with tags and branch preferences. Teammates run `pick install` to sync.
-- **Lockfile**: A `.pickpocket.lock` file alongside the Pickfile, also committed to version control. Records the exact commit SHA for each pick at the time of install/update. This ensures every contributor gets the same code at the same point in time. Think `package-lock.json` or `go.sum`.
 - **Cache**: The global directory (`~/.pickpocket/`) where cloned repos live on disk. This is a shared, deduplicated cache. Each unique repo+branch combination gets its own clone. If a repo at the same branch is already cached from another project, it's reused instantly.
 - **Tags**: User-defined labels attached to picks in the Pickfile, used for filtering and querying.
 
@@ -22,7 +21,6 @@ The CLI provides a beautiful, well-animated command-line experience.
 ```
 project/
   .pickpocket              # the Pickfile — checked into version control
-  .pickpocket.lock         # the Lockfile — checked into version control
 
 ~/.pickpocket/             # global cache
   cache.json               # internal index of cached repos and their state
@@ -46,14 +44,17 @@ The `.pickpocket` file is the source of truth for a project. It lives in the pro
     {
       "url": "https://github.com/anthropics/claude-code.git",
       "branch": "main",
+      "commit": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2",
       "tags": ["agent", "cli"]
     },
     {
       "url": "https://github.com/charmbracelet/bubbletea.git",
+      "commit": "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5",
       "tags": ["tui", "go"]
     },
     {
-      "url": "https://github.com/spf13/cobra.git"
+      "url": "https://github.com/spf13/cobra.git",
+      "commit": "1234567890abcdef1234567890abcdef12345678"
     }
   ]
 }
@@ -62,46 +63,12 @@ The `.pickpocket` file is the source of truth for a project. It lives in the pro
 Fields per entry:
 - `url` (required) — the git clone URL.
 - `branch` (optional) — branch to track. Defaults to the repo's default branch.
+- `commit` (optional) — the exact commit SHA, pinned when the pick was added or last updated. Ensures reproducible installs.
 - `tags` (optional) — labels for filtering and querying.
 
 Design goals:
 - **Minimal and diff-friendly** — easy to hand-edit, review in PRs, and merge.
 - **Declarative** — describes *what* the project needs, not *where* it lives on disk or *when* it was fetched. All of that is the cache's problem.
-
-## Lockfile Schema
-
-The `.pickpocket.lock` file sits alongside the Pickfile and is also committed to version control. It pins the exact commit SHA for each pick, ensuring deterministic, reproducible setups across all contributors.
-
-```jsonc
-{
-  "locked": [
-    {
-      "url": "https://github.com/anthropics/claude-code.git",
-      "branch": "main",
-      "commit": "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
-    },
-    {
-      "url": "https://github.com/charmbracelet/bubbletea.git",
-      "branch": "main",
-      "commit": "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5"
-    },
-    {
-      "url": "https://github.com/spf13/cobra.git",
-      "branch": "main",
-      "commit": "1234567890abcdef1234567890abcdef12345678"
-    }
-  ]
-}
-```
-
-Lifecycle:
-- **Created/updated** by `pick <url>`, `pick install`, and `pick update`. Any operation that resolves a commit writes to the lockfile. `pick <url>` appends or updates only the entry for the added pick; it does not rewrite unrelated entries.
-- **Consumed** by `pick install`. When a lockfile exists, `pick install` checks out the exact locked commits rather than fetching the branch tip. This means a fresh `pick install` is fully deterministic.
-- **Explicitly updated** by `pick update`. Running `pick update` fetches latest and rewrites the lockfile with new SHAs. This is an intentional action — the diff shows up in version control for review.
-
-This separation mirrors the Pickfile/Lockfile split in package managers:
-- The **Pickfile** says "I want this repo on this branch" (intent).
-- The **Lockfile** says "last time we resolved that, the commit was X" (fact).
 
 ## Cache Index Schema
 
@@ -157,7 +124,7 @@ Behavior:
 4. Add the entry to the Pickfile.
 5. If the repo+branch isn't already in the global cache, clone it (with animated progress).
 6. If it is cached, print that it was already available — no network needed.
-7. Append or update the entry for this pick in the lockfile (`.pickpocket.lock`) with the resolved commit SHA.
+7. Write the resolved commit SHA into the pick's `commit` field in the Pickfile.
 
 Flags:
 - `--tag, -t` (repeatable) — tags to attach to the pick.
@@ -173,13 +140,12 @@ pick install
 
 Behavior:
 1. Find the nearest `.pickpocket` file by walking up from the current directory.
-2. If a `.pickpocket.lock` file exists, use the locked commit SHAs — this ensures deterministic installs.
-3. For each entry:
+2. For each entry:
    - If already cached at the correct commit, skip (print "cached").
-   - If cached but at a different commit (and lockfile specifies one), check out the locked commit.
-   - If not cached, clone into the global cache and check out the locked commit (with animated progress).
-4. If no lockfile exists, clone/fetch branch tips and **create** the lockfile with the resolved commits.
-5. Display a summary on completion.
+   - If cached but at a different commit (and the pick has a pinned `commit`), check out the pinned commit.
+   - If not cached, clone into the global cache and check out the pinned commit (with animated progress).
+3. If a pick has no `commit` field, clone/fetch the branch tip and write the resolved commit back into the Pickfile.
+4. Display a summary on completion.
 
 #### `pick list [flags]`
 
@@ -211,7 +177,7 @@ Behavior:
 1. Resolve which picks to update from the Pickfile (all, by id, or by tag filter).
 2. `git fetch` + `git reset --hard` to latest on tracked branch, in parallel where possible.
 3. Update cache index with new commit SHA and `updated_at`.
-4. **Rewrite the lockfile** with the new commit SHAs. The lockfile diff is visible in version control for review.
+4. Update the `commit` field in the Pickfile for each updated pick. The diff is visible in version control for review.
 5. Display per-repo animated progress and a summary of what changed (old SHA -> new SHA).
 
 Flags:
@@ -227,8 +193,7 @@ pick remove github.com/anthropics/claude-code@main
 
 Behavior:
 1. Remove the entry from the Pickfile.
-2. Remove the corresponding entry from the lockfile.
-3. The cached clone is **not** deleted (other projects may use it). Use `pick cache remove` or `pick cache clean` to manage cache storage directly.
+2. The cached clone is **not** deleted (other projects may use it). Use `pick cache remove` or `pick cache clean` to manage cache storage directly.
 
 Flags:
 - `--force, -f` — skip confirmation.
@@ -470,7 +435,7 @@ The exact skill format and installation mechanism should follow whatever Claude 
 
 ### URL Normalization
 
-All URLs are normalized before use in the Pickfile, lockfile, cache index, and dedup checks. The rules:
+All URLs are normalized before use in the Pickfile, cache index, and dedup checks. The rules:
 
 1. **Strip `.git` suffix** — `https://github.com/owner/repo.git` becomes `https://github.com/owner/repo`.
 2. **Normalize SSH to HTTPS** — `git@host:owner/repo` becomes `https://host/owner/repo`.
@@ -478,7 +443,7 @@ All URLs are normalized before use in the Pickfile, lockfile, cache index, and d
 
 This means `git@github.com:owner/repo.git` and `https://github.com/owner/repo` resolve to the same cache entry (given the same branch).
 
-The **stored URL** in the Pickfile and lockfile is always the normalized HTTPS form.
+The **stored URL** in the Pickfile is always the normalized HTTPS form.
 
 Note: v1 is tested against GitHub-hosted repos only. The normalization rules are designed to be host-agnostic so that other git hosts (GitLab, Bitbucket, self-hosted, etc.) work in the future without schema changes.
 
@@ -505,7 +470,6 @@ Deliverables:
 - [x] Cobra root command (`pick`) with `--help` wired up.
 - [x] **URL normalization** — a `pkg/normalize` (or similar) package with functions to parse any git URL (HTTPS, SSH), strip `.git`, normalize to HTTPS, and derive the cache ID (`host/owner/repo@branch`). Fully unit-tested — this is load-bearing for everything that follows.
 - [x] **Pickfile read/write** — a `pkg/pickfile` package that can load, modify, and write `.pickpocket` JSON. Includes Pickfile discovery (walk up from cwd). Unit-tested.
-- [x] **Lockfile read/write** — same treatment. Load, modify, write `.pickpocket.lock`. Unit-tested.
 - [x] **Cache index read/write** — a `pkg/cache` package that can load and write `~/.pickpocket/cache.json`. Unit-tested.
 
 At the end of this phase: no user-facing commands work yet, but all the data layer is solid and tested.
@@ -516,23 +480,23 @@ The first commands that actually do something. This is the minimum needed to go 
 
 Deliverables:
 - [x] `pick init` — creates an empty `.pickpocket` file.
-- [x] `pick <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write lockfile entry, update cache index.
+- [x] `pick <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write commit into Pickfile, update cache index.
 - [x] **Git clone wrapper** — a function that clones a repo into the correct cache path (`~/.pickpocket/repos/host/owner/repo/branch/`), with spinner output.
 - [x] `--branch` and `--tag` flags on `pick <url>`.
 - [x] Duplicate detection (same URL + branch already in Pickfile).
 
-At the end of this phase: you can `pick init` then `pick <url>` several repos. The Pickfile, lockfile, and cache are all populated correctly. You can inspect the files by hand to verify.
+At the end of this phase: you can `pick init` then `pick <url>` several repos. The Pickfile and cache are all populated correctly. You can inspect the files by hand to verify.
 
 ### Phase 3: `pick install`
 
 The critical "teammate clones the project" flow.
 
 Deliverables:
-- [ ] `pick install` — reads Pickfile and lockfile, clones missing repos, checks out locked commits, skips already-cached-at-correct-commit repos.
+- [ ] `pick install` — reads Pickfile, clones missing repos, checks out pinned commits, skips already-cached-at-correct-commit repos.
 - [ ] Parallel cloning with a concurrency limit and progress output (multi-spinner or progress bar).
-- [ ] Handles the no-lockfile case (clone branch tips, create lockfile).
+- [ ] Handles picks with no `commit` field (clone branch tips, write resolved commit back into Pickfile).
 
-At the end of this phase: the core loop works. One person `pick`s repos, commits the Pickfile and lockfile, another person runs `pick install` and gets identical state.
+At the end of this phase: the core loop works. One person `pick`s repos, commits the Pickfile, another person runs `pick install` and gets identical state.
 
 ### Phase 4: `pick list`, `pick path`, `pick info`
 
@@ -562,8 +526,8 @@ At the end of this phase: an agent can `pick open` a repo, get an isolated writa
 Lifecycle management — keeping picks current and removing ones you don't need.
 
 Deliverables:
-- [ ] `pick update` — fetch latest, `git reset --hard`, update lockfile and cache index. Supports targeting by id or `--tag`. Parallel fetching with progress.
-- [ ] `pick remove <id>` — remove from Pickfile and lockfile. Confirmation prompt (skippable with `--force`).
+- [ ] `pick update` — fetch latest, `git reset --hard`, update Pickfile `commit` fields and cache index. Supports targeting by id or `--tag`. Parallel fetching with progress.
+- [ ] `pick remove <id>` — remove from Pickfile. Confirmation prompt (skippable with `--force`).
 
 ### Phase 7: `pick tag` subcommands
 

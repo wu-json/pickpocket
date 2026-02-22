@@ -10,7 +10,7 @@ pickpocket lets you declare git repositories in a `.pickpocket` file, clone them
 2. **Install** them with `pick install` — clones go into a shared global cache (`~/.pickpocket/`)
 3. **Query** paths with `pick path --tag <tag>` so coding agents can read the code
 
-Same repo + branch is only cloned once, even across multiple projects. A lockfile (`.pickpocket.lock`) pins exact commits for reproducible setups across your team.
+Same repo + branch is only cloned once, even across multiple projects. Exact commit SHAs are pinned directly in the `.pickpocket` file for reproducible setups across your team.
 
 ## Local development
 
@@ -52,8 +52,7 @@ internal/
   giturl/                   # URL parsing and normalization
   git/                      # Git CLI wrapper (clone, branch detection)
   pickfile/                 # .pickpocket file read/write/discovery
-  lockfile/                 # .pickpocket.lock file read/write
-  cache/                    # Global cache index (~/.pickpocket/cache.json)
+cache/                    # Global cache index (~/.pickpocket/cache.json)
 ```
 
 ## License

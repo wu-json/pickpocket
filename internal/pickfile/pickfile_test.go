@@ -103,6 +103,9 @@ func TestOmitempty(t *testing.T) {
 	if _, ok := pick["branch"]; ok {
 		t.Error("expected branch to be omitted")
 	}
+	if _, ok := pick["commit"]; ok {
+		t.Error("expected commit to be omitted")
+	}
 	if _, ok := pick["tags"]; ok {
 		t.Error("expected tags to be omitted")
 	}
