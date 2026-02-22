@@ -148,22 +148,41 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		switch r.status {
 		case "cloned":
 			cloned++
-			fmt.Fprintln(os.Stderr, "✓ "+bold.Render(repo)+dim.Render("  cloned at "+short))
+			fmt.Fprintln(os.Stderr, "✓ "+bold.Render(repo)+" "+dim.Render("cloned at "+short))
 		case "updated":
 			updated++
-			fmt.Fprintln(os.Stderr, "✓ "+bold.Render(repo)+dim.Render("  updated to "+short))
+			fmt.Fprintln(os.Stderr, "✓ "+bold.Render(repo)+" "+dim.Render("updated to "+short))
 		case "cached":
 			cached++
-			fmt.Fprintln(os.Stderr, "· "+bold.Render(repo)+dim.Render("  cached at "+short))
+			fmt.Fprintln(os.Stderr, "· "+bold.Render(repo)+" "+dim.Render("cached at "+short))
 		case "failed":
 			failed++
-			fmt.Fprintln(os.Stderr, "✗ "+bold.Render(repo)+dim.Render("  "+r.err.Error()))
+			fmt.Fprintln(os.Stderr, "✗ "+bold.Render(repo)+" "+dim.Render(r.err.Error()))
 		}
 	}
 
-	total := len(pf.Picks)
-	fmt.Fprintf(os.Stderr, "\n%d picks: %d cloned, %d updated, %d cached, %d failed\n",
-		total, cloned, updated, cached, failed)
+	parts := []string{}
+	if cloned > 0 {
+		parts = append(parts, fmt.Sprintf("%d cloned", cloned))
+	}
+	if updated > 0 {
+		parts = append(parts, fmt.Sprintf("%d updated", updated))
+	}
+	if cached > 0 {
+		parts = append(parts, fmt.Sprintf("%d cached", cached))
+	}
+	if failed > 0 {
+		parts = append(parts, fmt.Sprintf("%d failed", failed))
+	}
+	summary := fmt.Sprintf("\n%d picks", len(pf.Picks))
+	for i, p := range parts {
+		if i == 0 {
+			summary += ": " + p
+		} else {
+			summary += ", " + p
+		}
+	}
+	fmt.Fprintln(os.Stderr, dim.Render(summary))
 
 	if failed > 0 {
 		return fmt.Errorf("%d pick(s) failed to install", failed)

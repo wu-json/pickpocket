@@ -21,9 +21,11 @@ var initCmd = &cobra.Command{
 
 		path := filepath.Join(cwd, pickfile.Filename)
 
+		dim := lipgloss.NewStyle().Faint(true)
+		bold := lipgloss.NewStyle().Bold(true)
+
 		if _, err := os.Stat(path); err == nil {
-			warn := lipgloss.NewStyle().Foreground(lipgloss.Color("3"))
-			fmt.Fprintln(os.Stderr, warn.Render("Already initialized: "+pickfile.Filename))
+			fmt.Fprintln(os.Stderr, dim.Render("· "+pickfile.Filename+" already exists"))
 			return nil
 		}
 
@@ -32,8 +34,7 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("writing %s: %w", pickfile.Filename, err)
 		}
 
-		success := lipgloss.NewStyle().Foreground(lipgloss.Color("2"))
-		fmt.Fprintln(os.Stderr, success.Render("Created "+pickfile.Filename))
+		fmt.Fprintln(os.Stderr, "✓ Created "+bold.Render(pickfile.Filename))
 		return nil
 	},
 }
