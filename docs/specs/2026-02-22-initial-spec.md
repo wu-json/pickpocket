@@ -496,9 +496,9 @@ At the end of this phase: you can `pick init` then `pick <url>` several repos. T
 The critical "teammate clones the project" flow.
 
 Deliverables:
-- [ ] `pick install` — reads Pickfile, clones missing repos, checks out pinned commits, skips already-cached-at-correct-commit repos.
-- [ ] Parallel cloning with a concurrency limit and progress output (multi-spinner or progress bar).
-- [ ] Handles picks with no `commit` field (clone branch tips, write resolved commit back into Pickfile).
+- [x] `pick install` — reads Pickfile, clones missing repos, checks out pinned commits, skips already-cached-at-correct-commit repos.
+- [x] Parallel cloning with a concurrency limit and progress output (multi-spinner or progress bar).
+- [x] Handles picks with no `commit` field (clone branch tips, write resolved commit back into Pickfile).
 
 At the end of this phase: the core loop works. One person `pick`s repos, commits the Pickfile, another person runs `pick install` and gets identical state.
 
