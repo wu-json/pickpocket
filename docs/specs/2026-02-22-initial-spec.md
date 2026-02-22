@@ -515,11 +515,11 @@ At the end of this phase: no user-facing commands work yet, but all the data lay
 The first commands that actually do something. This is the minimum needed to go from an empty project to a populated Pickfile with cached repos.
 
 Deliverables:
-- [ ] `pick init` — creates an empty `.pickpocket` file.
-- [ ] `pick add <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write lockfile entry, update cache index.
-- [ ] **Git clone wrapper** — a function that clones a repo into the correct cache path (`~/.pickpocket/repos/host/owner/repo/branch/`), with spinner output.
-- [ ] `--branch` and `--tag` flags on `add`.
-- [ ] Duplicate detection (same URL + branch already in Pickfile).
+- [x] `pick init` — creates an empty `.pickpocket` file.
+- [x] `pick add <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write lockfile entry, update cache index.
+- [x] **Git clone wrapper** — a function that clones a repo into the correct cache path (`~/.pickpocket/repos/host/owner/repo/branch/`), with spinner output.
+- [x] `--branch` and `--tag` flags on `add`.
+- [x] Duplicate detection (same URL + branch already in Pickfile).
 
 At the end of this phase: you can `pick init` then `pick add` several repos. The Pickfile, lockfile, and cache are all populated correctly. You can inspect the files by hand to verify.
 

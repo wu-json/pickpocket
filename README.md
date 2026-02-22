@@ -50,6 +50,7 @@ cmd/
   root.go                   # Cobra root command
 internal/
   giturl/                   # URL parsing and normalization
+  git/                      # Git CLI wrapper (clone, branch detection)
   pickfile/                 # .pickpocket file read/write/discovery
   lockfile/                 # .pickpocket.lock file read/write
   cache/                    # Global cache index (~/.pickpocket/cache.json)
