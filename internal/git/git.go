@@ -75,6 +75,15 @@ func Checkout(repoDir, ref string) error {
 	return nil
 }
 
+// ResetHard resets the repo to the given ref, discarding local changes.
+func ResetHard(repoDir, ref string) error {
+	cmd := exec.Command("git", "-C", repoDir, "reset", "--hard", ref)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("git reset --hard %s in %s: %s: %w", ref, repoDir, strings.TrimSpace(string(out)), err)
+	}
+	return nil
+}
+
 // WorktreeAdd creates a new worktree at worktreePath checked out to the given commit.
 func WorktreeAdd(repoDir, worktreePath, commit string) error {
 	cmd := exec.Command("git", "-C", repoDir, "worktree", "add", "--detach", worktreePath, commit)

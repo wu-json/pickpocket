@@ -160,6 +160,61 @@ func TestFetchInvalidDir(t *testing.T) {
 	}
 }
 
+func TestResetHard(t *testing.T) {
+	bareDir := setupBareRepo(t)
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+
+	initialSHA, err := Clone(bareDir, "main", cloneDir)
+	if err != nil {
+		t.Fatalf("Clone() error: %v", err)
+	}
+
+	// Add a second commit and fetch it
+	newSHA := addCommitToBare(t, bareDir)
+	if err := Fetch(cloneDir); err != nil {
+		t.Fatalf("Fetch() error: %v", err)
+	}
+
+	// Reset to origin/main (which has the new commit)
+	if err := ResetHard(cloneDir, "origin/main"); err != nil {
+		t.Fatalf("ResetHard() error: %v", err)
+	}
+
+	got, err := HeadCommit(cloneDir)
+	if err != nil {
+		t.Fatalf("HeadCommit() error: %v", err)
+	}
+	if got != newSHA {
+		t.Errorf("HeadCommit() = %q, want %q", got, newSHA)
+	}
+
+	// Reset back to the initial commit
+	if err := ResetHard(cloneDir, initialSHA); err != nil {
+		t.Fatalf("ResetHard() error: %v", err)
+	}
+
+	got, err = HeadCommit(cloneDir)
+	if err != nil {
+		t.Fatalf("HeadCommit() error: %v", err)
+	}
+	if got != initialSHA {
+		t.Errorf("HeadCommit() = %q, want %q", got, initialSHA)
+	}
+}
+
+func TestResetHardInvalidRef(t *testing.T) {
+	bareDir := setupBareRepo(t)
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+
+	if _, err := Clone(bareDir, "main", cloneDir); err != nil {
+		t.Fatalf("Clone() error: %v", err)
+	}
+
+	if err := ResetHard(cloneDir, "nonexistent-ref-abc123"); err == nil {
+		t.Error("expected error for invalid ref, got nil")
+	}
+}
+
 func TestCheckout(t *testing.T) {
 	bareDir := setupBareRepo(t)
 	cloneDir := filepath.Join(t.TempDir(), "clone")

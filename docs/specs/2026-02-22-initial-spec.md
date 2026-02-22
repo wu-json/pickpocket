@@ -530,8 +530,8 @@ At the end of this phase: an agent can `pick open` a repo, get an isolated writa
 Lifecycle management — keeping picks current and removing ones you don't need.
 
 Deliverables:
-- [ ] `pick update` — fetch latest, `git reset --hard`, update Pickfile `commit` fields and cache index. Supports targeting by id or `--tag`. Parallel fetching with progress.
-- [ ] `pick remove <id>` — remove from Pickfile. Confirmation prompt (skippable with `--force`).
+- [x] `pick update` — fetch latest, `git reset --hard`, update Pickfile `commit` fields and cache index. Supports targeting by id or `--tag`. Parallel fetching with progress.
+- [x] `pick remove <id>` — remove from Pickfile. Confirmation prompt (skippable with `--force`).
 
 ### Phase 7: `pick tag` subcommands
 
