@@ -95,7 +95,7 @@ The `.pickpocket.lock` file sits alongside the Pickfile and is also committed to
 ```
 
 Lifecycle:
-- **Created/updated** by `pick add`, `pick install`, and `pick update`. Any operation that resolves a commit writes to the lockfile. `pick add` appends or updates only the entry for the added pick; it does not rewrite unrelated entries.
+- **Created/updated** by `pick <url>`, `pick install`, and `pick update`. Any operation that resolves a commit writes to the lockfile. `pick <url>` appends or updates only the entry for the added pick; it does not rewrite unrelated entries.
 - **Consumed** by `pick install`. When a lockfile exists, `pick install` checks out the exact locked commits rather than fetching the branch tip. This means a fresh `pick install` is fully deterministic.
 - **Explicitly updated** by `pick update`. Running `pick update` fetches latest and rewrites the lockfile with new SHAs. This is an intentional action — the diff shows up in version control for review.
 
@@ -140,14 +140,14 @@ All commands that operate on picks use the **project's Pickfile** as the scope b
 
 ### Commands
 
-#### `pick add <url> [flags]`
+#### `pick <url> [flags]`
 
 Add a repo to the project's Pickfile and ensure it's cached locally.
 
 ```
-pick add https://github.com/anthropics/claude-code
-pick add git@github.com:anthropics/claude-code.git
-pick add https://github.com/anthropics/claude-code --tag agent --tag cli --branch main
+pick https://github.com/anthropics/claude-code
+pick git@github.com:anthropics/claude-code.git
+pick https://github.com/anthropics/claude-code --tag agent --tag cli --branch main
 ```
 
 Behavior:
@@ -416,7 +416,7 @@ Behavior:
 1. Create an empty `.pickpocket` file (`{"picks": []}`) in the current working directory.
 2. If one already exists, print a message and exit (no overwrite).
 
-This is optional — `pick add` will also create the file if needed.
+This is optional — `pick <url>` will also create the file if needed.
 
 ## UX / Animation Guidelines
 
@@ -453,7 +453,7 @@ a vendored repository:
 5. Use what you find as context for your response.
 
 If no picks are available, inform the user they can add repos with:
-  pick add <github-url> --tag <tag>
+  pick <github-url> --tag <tag>
 ```
 
 The exact skill format and installation mechanism should follow whatever Claude Code supports at build time.
@@ -510,18 +510,18 @@ Deliverables:
 
 At the end of this phase: no user-facing commands work yet, but all the data layer is solid and tested.
 
-### Phase 2: `pick init` and `pick add`
+### Phase 2: `pick init` and `pick <url>`
 
 The first commands that actually do something. This is the minimum needed to go from an empty project to a populated Pickfile with cached repos.
 
 Deliverables:
 - [x] `pick init` — creates an empty `.pickpocket` file.
-- [x] `pick add <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write lockfile entry, update cache index.
+- [x] `pick <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write lockfile entry, update cache index.
 - [x] **Git clone wrapper** — a function that clones a repo into the correct cache path (`~/.pickpocket/repos/host/owner/repo/branch/`), with spinner output.
-- [x] `--branch` and `--tag` flags on `add`.
+- [x] `--branch` and `--tag` flags on `pick <url>`.
 - [x] Duplicate detection (same URL + branch already in Pickfile).
 
-At the end of this phase: you can `pick init` then `pick add` several repos. The Pickfile, lockfile, and cache are all populated correctly. You can inspect the files by hand to verify.
+At the end of this phase: you can `pick init` then `pick <url>` several repos. The Pickfile, lockfile, and cache are all populated correctly. You can inspect the files by hand to verify.
 
 ### Phase 3: `pick install`
 
@@ -532,7 +532,7 @@ Deliverables:
 - [ ] Parallel cloning with a concurrency limit and progress output (multi-spinner or progress bar).
 - [ ] Handles the no-lockfile case (clone branch tips, create lockfile).
 
-At the end of this phase: the core loop works. One person `pick add`s repos, commits the Pickfile and lockfile, another person runs `pick install` and gets identical state.
+At the end of this phase: the core loop works. One person `pick`s repos, commits the Pickfile and lockfile, another person runs `pick install` and gets identical state.
 
 ### Phase 4: `pick list`, `pick path`, `pick info`
 

@@ -17,18 +17,26 @@ var versionCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(versionCmd)
-}
-
 var rootCmd = &cobra.Command{
-	Use:   "pick",
+	Use:   "pick [url]",
 	Short: "Manage vendored git clones as LLM context",
 	Long: `pickpocket is a CLI tool for managing vendored git clones as LLM context.
 
 It lets you declare git repositories in a .pickpocket file, clone them into
 a local .picks/ directory, and keep them in sync — giving your LLM tools
-fast, local access to external codebases as context.`,
+fast, local access to external codebases as context.
+
+Usage:
+  pick <url>           Add a git repository to the Pickfile
+  pick [command]       Run a subcommand`,
+	Args: cobra.MaximumNArgs(1),
+	RunE: runAdd,
+}
+
+func init() {
+	rootCmd.AddCommand(versionCmd)
+	rootCmd.Flags().StringVarP(&addBranch, "branch", "b", "", "branch to track")
+	rootCmd.Flags().StringSliceVarP(&addTags, "tag", "t", nil, "tags for this pick (repeatable)")
 }
 
 func Execute() {
