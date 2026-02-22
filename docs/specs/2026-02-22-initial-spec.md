@@ -281,6 +281,30 @@ Flags:
 - `--tag, -t` (repeatable) — filter by tags.
 - `--json` — output as JSON array.
 
+#### `pick open <id>`
+
+Open a pick in a temporary, disposable working directory. This gives an LLM agent an isolated, writable copy of the repo to run builds, modify files, or experiment in — without affecting the cache or other sessions. The agent just gets a path and uses it. It never needs to think about cleanup.
+
+```
+pick open github.com/anthropics/claude-code@main
+# prints: /tmp/pickpocket/claude-code-main-a1b2c3d/
+```
+
+Behavior:
+1. Resolve the pick from the Pickfile and locate its cached clone.
+2. Create a git worktree from the cached clone into `/tmp/pickpocket/<repo>-<branch>-<short-hash>/`.
+3. The worktree checks out the same commit the cache is at (the locked commit).
+4. Print the path to stdout (just the path, nothing else — suitable for `$(pick open ...)`).
+
+This uses `git worktree add`, which shares the object store with the cached clone. No network, no copying git objects — only the working tree files are written. This makes it nearly instant even for large repos.
+
+**Cleanup is fully automatic.** The agent never needs to clean up after itself:
+- All temporary worktrees are tracked in the cache index.
+- Every `pick` command that runs (open, install, update, etc.) prunes stale worktrees as a side effect — any worktree older than 24 hours or whose `/tmp` path no longer exists is removed.
+- `pick open --clean` exists as an escape hatch for manual cleanup, but normal usage never needs it.
+
+This means worktrees are effectively ephemeral. An agent session gets a fresh workspace, uses it, and the next `pick` invocation (by any session, in any project) silently cleans it up.
+
 #### `pick info <id>`
 
 Show detailed info for a single pick in the current project.
@@ -467,3 +491,114 @@ Note: v1 is tested against GitHub-hosted repos only. The normalization rules are
 - Config file for defaults (concurrency, default tags, etc.).
 - Support for non-git sources (tarballs, zip archives).
 - First-class support for non-GitHub git hosts (GitLab, Bitbucket, self-hosted). URL normalization is host-agnostic by design; this is about testing and any host-specific UX (e.g., shorthand aliases).
+
+## Rollout Plan
+
+The implementation is broken into phases. Each phase produces a working, testable tool — later phases layer on top without rewriting earlier work.
+
+### Phase 1: Project scaffolding and core plumbing
+
+Set up the Go module, Cobra CLI skeleton, and the foundational libraries everything else depends on.
+
+Deliverables:
+- `go.mod` with cobra, lipgloss, bubbles dependencies.
+- Cobra root command (`pick`) with `--help` wired up.
+- **URL normalization** — a `pkg/normalize` (or similar) package with functions to parse any git URL (HTTPS, SSH), strip `.git`, normalize to HTTPS, and derive the cache ID (`host/owner/repo@branch`). Fully unit-tested — this is load-bearing for everything that follows.
+- **Pickfile read/write** — a `pkg/pickfile` package that can load, modify, and write `.pickpocket` JSON. Includes Pickfile discovery (walk up from cwd). Unit-tested.
+- **Lockfile read/write** — same treatment. Load, modify, write `.pickpocket.lock`. Unit-tested.
+- **Cache index read/write** — a `pkg/cache` package that can load and write `~/.pickpocket/cache.json`. Unit-tested.
+
+At the end of this phase: no user-facing commands work yet, but all the data layer is solid and tested.
+
+### Phase 2: `pick init` and `pick add`
+
+The first commands that actually do something. This is the minimum needed to go from an empty project to a populated Pickfile with cached repos.
+
+Deliverables:
+- `pick init` — creates an empty `.pickpocket` file.
+- `pick add <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write lockfile entry, update cache index.
+- **Git clone wrapper** — a function that clones a repo into the correct cache path (`~/.pickpocket/repos/host/owner/repo/branch/`), with spinner output.
+- `--branch` and `--tag` flags on `add`.
+- Duplicate detection (same URL + branch already in Pickfile).
+
+At the end of this phase: you can `pick init` then `pick add` several repos. The Pickfile, lockfile, and cache are all populated correctly. You can inspect the files by hand to verify.
+
+### Phase 3: `pick install`
+
+The critical "teammate clones the project" flow.
+
+Deliverables:
+- `pick install` — reads Pickfile and lockfile, clones missing repos, checks out locked commits, skips already-cached-at-correct-commit repos.
+- Parallel cloning with a concurrency limit and progress output (multi-spinner or progress bar).
+- Handles the no-lockfile case (clone branch tips, create lockfile).
+
+At the end of this phase: the core loop works. One person `pick add`s repos, commits the Pickfile and lockfile, another person runs `pick install` and gets identical state.
+
+### Phase 4: `pick list`, `pick path`, `pick info`
+
+Read-only query commands. These are the primary interface for both humans and coding agents.
+
+Deliverables:
+- `pick list` — formatted table output with URL, branch, commit, tags. `--tag` filter. `--json` output.
+- `pick path` — newline-separated absolute paths. `--tag` filter. `--json` output.
+- `pick info <id>` — detailed view of a single pick (Pickfile entry + cache state).
+
+At the end of this phase: the tool is usable end-to-end for the primary use case (add repos, install them, query paths for agent context).
+
+### Phase 5: `pick open`
+
+Ephemeral writable workspaces for agents.
+
+Deliverables:
+- `pick open <id>` — creates a git worktree in `/tmp/pickpocket/`, prints the path to stdout.
+- Worktree tracking in cache index (path, creation time).
+- **Automatic stale worktree pruning** — runs as a side effect of any `pick` command. Removes worktrees older than 24 hours or whose `/tmp` path no longer exists.
+- `pick open --clean` escape hatch for manual cleanup.
+
+At the end of this phase: an agent can `pick open` a repo, get an isolated writable copy instantly, use it, and never think about cleanup.
+
+### Phase 6: `pick update` and `pick remove`
+
+Lifecycle management — keeping picks current and removing ones you don't need.
+
+Deliverables:
+- `pick update` — fetch latest, `git reset --hard`, update lockfile and cache index. Supports targeting by id or `--tag`. Parallel fetching with progress.
+- `pick remove <id>` — remove from Pickfile and lockfile. Confirmation prompt (skippable with `--force`).
+
+### Phase 7: `pick tag` subcommands
+
+Tag management for organizing picks.
+
+Deliverables:
+- `pick tag add <id> <tags...>`
+- `pick tag remove <id> <tags...>`
+- `pick tag list` — table of tags with pick counts.
+
+### Phase 8: `pick doctor` and `pick cache` subcommands
+
+Diagnostics and cache management.
+
+Deliverables:
+- `pick doctor` — styled dashboard: cache completeness, git state validation, staleness warnings, disk usage stats.
+- `pick cache list` — table of all globally cached repos.
+- `pick cache remove <id>` — delete a specific cached clone with confirmation.
+- `pick cache clean` — wipe entire cache with confirmation.
+- Cache locking (`~/.pickpocket/cache.lock`) for concurrent access safety.
+
+### Phase 9: Claude Code agent skill
+
+The agent integration layer.
+
+Deliverables:
+- A `.md` skill file that teaches Claude Code how to use `pick list --json` and `pick path --tag` to discover and read vendored context.
+- Installation instructions / mechanism appropriate to Claude Code's skill system.
+
+### Phase 10: Polish
+
+Final UX pass before calling it v1.
+
+Deliverables:
+- Consistent error formatting across all commands.
+- Edge case handling: network failures, corrupt cache, missing `.git` directories, permission errors.
+- Helpful messages: "did you mean X?", suggestions when commands fail.
+- README and `--help` text for every command.
