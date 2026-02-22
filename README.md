@@ -2,15 +2,15 @@
 
 A CLI tool for managing vendored git clones as LLM context.
 
-pickpocket lets you declare git repositories in a `.pickpocket` file, clone them into a global cache, and give your LLM coding agents fast, local access to external codebases as context.
+pickpocket lets you declare git repositories in a `pickpocket.json` file, clone them into a global cache, and give your LLM coding agents fast, local access to external codebases as context.
 
 ## How it works
 
-1. **Declare** repos in a `.pickpocket` file (the "Pickfile") at your project root
+1. **Declare** repos in a `pickpocket.json` file (the "Pickfile") at your project root
 2. **Install** them with `pick install` — clones go into a shared global cache (`~/.pickpocket/`)
 3. **Query** paths with `pick path --tag <tag>` so coding agents can read the code
 
-Same repo + branch is only cloned once, even across multiple projects. Exact commit SHAs are pinned directly in the `.pickpocket` file for reproducible setups across your team.
+Same repo + branch is only cloned once, even across multiple projects. Exact commit SHAs are pinned directly in the `pickpocket.json` file for reproducible setups across your team.
 
 ## Local development
 
@@ -51,7 +51,7 @@ cmd/
 internal/
   giturl/                   # URL parsing and normalization
   git/                      # Git CLI wrapper (clone, branch detection)
-  pickfile/                 # .pickpocket file read/write/discovery
+  pickfile/                 # pickpocket.json file read/write/discovery
 cache/                    # Global cache index (~/.pickpocket/cache.json)
 ```
 

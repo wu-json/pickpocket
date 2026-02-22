@@ -8,7 +8,7 @@ import (
 )
 
 func TestDiscover(t *testing.T) {
-	// Create a temp dir structure: root/.pickpocket, root/a/b/
+	// Create a temp dir structure: root/pickpocket.json, root/a/b/
 	root := t.TempDir()
 	pfPath := filepath.Join(root, Filename)
 	os.WriteFile(pfPath, []byte(`{"picks":[]}`), 0644)
@@ -16,7 +16,7 @@ func TestDiscover(t *testing.T) {
 	nested := filepath.Join(root, "a", "b")
 	os.MkdirAll(nested, 0755)
 
-	// Discover from nested dir should find root's .pickpocket
+	// Discover from nested dir should find root's pickpocket.json
 	got, err := Discover(nested)
 	if err != nil {
 		t.Fatal(err)

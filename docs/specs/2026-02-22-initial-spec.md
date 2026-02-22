@@ -5,14 +5,14 @@
 
 ## Overview
 
-pickpocket is a CLI tool for managing vendored git clones intended to be used as LLM context for coding agents. It is project-centric: each project has a **Pickfile** (`.pickpocket`) that declares which repos it needs. Clones are stored in a global cache (`~/.pickpocket/`) for deduplication — if two projects need the same repo at the same branch, it's only cloned once.
+pickpocket is a CLI tool for managing vendored git clones intended to be used as LLM context for coding agents. It is project-centric: each project has a **Pickfile** (`pickpocket.json`) that declares which repos it needs. Clones are stored in a global cache (`~/.pickpocket/`) for deduplication — if two projects need the same repo at the same branch, it's only cloned once.
 
 The CLI provides a beautiful, well-animated command-line experience.
 
 ## Core Concepts
 
 - **Pick**: A vendored git clone managed by pickpocket.
-- **Pickfile**: The primary manifest — a `.pickpocket` file in a project's root, committed to version control. Declares which repos the project uses for context, along with tags and branch preferences. Teammates run `pick install` to sync.
+- **Pickfile**: The primary manifest — a `pickpocket.json` file in a project's root, committed to version control. Declares which repos the project uses for context, along with tags and branch preferences. Teammates run `pick install` to sync.
 - **Cache**: The global directory (`~/.pickpocket/`) where cloned repos live on disk. This is a shared, deduplicated cache. Each unique repo+branch combination gets its own clone. If a repo at the same branch is already cached from another project, it's reused instantly.
 - **Tags**: User-defined labels attached to picks in the Pickfile, used for filtering and querying.
 
@@ -20,7 +20,7 @@ The CLI provides a beautiful, well-animated command-line experience.
 
 ```
 project/
-  .pickpocket              # the Pickfile — checked into version control
+  pickpocket.json          # the Pickfile — checked into version control
 
 ~/.pickpocket/             # global cache
   cache.json               # internal index of cached repos and their state
@@ -36,7 +36,7 @@ Each branch gets its own full clone so that multiple projects (or the same proje
 
 ## Pickfile Schema
 
-The `.pickpocket` file is the source of truth for a project. It lives in the project root and is checked into version control.
+The `pickpocket.json` file is the source of truth for a project. It lives in the project root and is checked into version control.
 
 ```jsonc
 {
@@ -118,7 +118,7 @@ pick https://github.com/anthropics/claude-code --tag agent --tag cli --branch ma
 ```
 
 Behavior:
-1. Find the nearest `.pickpocket` file (or create one in the current directory if none exists).
+1. Find the nearest `pickpocket.json` file (or create one in the current directory if none exists).
 2. Parse and normalize the URL (see [URL Normalization](#url-normalization)).
 3. Check the Pickfile for duplicates (same normalized URL **and** same branch).
 4. Add the entry to the Pickfile.
@@ -139,7 +139,7 @@ pick install
 ```
 
 Behavior:
-1. Find the nearest `.pickpocket` file by walking up from the current directory.
+1. Find the nearest `pickpocket.json` file by walking up from the current directory.
 2. For each entry:
    - If already cached at the correct commit, skip (print "cached").
    - If cached but at a different commit (and the pick has a pinned `commit`), check out the pinned commit.
@@ -293,7 +293,7 @@ Output: a styled dashboard showing:
 ```
 pickpocket doctor
 
-  Project      /Users/you/myproject/.pickpocket
+  Project      /Users/you/myproject/pickpocket.json
   Picks        12 entries, 8 tags
 
   Cache        ~/.pickpocket/
@@ -371,14 +371,14 @@ Flags:
 
 #### `pick init`
 
-Initialize a `.pickpocket` file in the current directory.
+Initialize a `pickpocket.json` file in the current directory.
 
 ```
 pick init
 ```
 
 Behavior:
-1. Create an empty `.pickpocket` file (`{"picks": []}`) in the current working directory.
+1. Create an empty `pickpocket.json` file (`{"picks": []}`) in the current working directory.
 2. If one already exists, print a message and exit (no overwrite).
 
 This is optional — `pick <url>` will also create the file if needed.
@@ -431,7 +431,7 @@ The exact skill format and installation mechanism should follow whatever Claude 
 - **Clone type**: Full clones (not bare) so agents can read working tree files directly.
 - **Parallelism**: Multi-repo operations (install, update) should run concurrently with a sensible concurrency limit.
 - **Cache locking**: Use a lockfile (`~/.pickpocket/cache.lock`) during writes to avoid races from concurrent `pick install` in different projects.
-- **Pickfile discovery**: Walk up from cwd to find the nearest `.pickpocket` file (similar to how git finds `.git`).
+- **Pickfile discovery**: Walk up from cwd to find the nearest `pickpocket.json` file (similar to how git finds `.git`).
 
 ### URL Normalization
 
@@ -469,7 +469,7 @@ Deliverables:
 - [x] `go.mod` with cobra, lipgloss, bubbles dependencies.
 - [x] Cobra root command (`pick`) with `--help` wired up.
 - [x] **URL normalization** — a `pkg/normalize` (or similar) package with functions to parse any git URL (HTTPS, SSH), strip `.git`, normalize to HTTPS, and derive the cache ID (`host/owner/repo@branch`). Fully unit-tested — this is load-bearing for everything that follows.
-- [x] **Pickfile read/write** — a `pkg/pickfile` package that can load, modify, and write `.pickpocket` JSON. Includes Pickfile discovery (walk up from cwd). Unit-tested.
+- [x] **Pickfile read/write** — a `pkg/pickfile` package that can load, modify, and write `pickpocket.json`. Includes Pickfile discovery (walk up from cwd). Unit-tested.
 - [x] **Cache index read/write** — a `pkg/cache` package that can load and write `~/.pickpocket/cache.json`. Unit-tested.
 
 At the end of this phase: no user-facing commands work yet, but all the data layer is solid and tested.
@@ -479,7 +479,7 @@ At the end of this phase: no user-facing commands work yet, but all the data lay
 The first commands that actually do something. This is the minimum needed to go from an empty project to a populated Pickfile with cached repos.
 
 Deliverables:
-- [x] `pick init` — creates an empty `.pickpocket` file.
+- [x] `pick init` — creates an empty `pickpocket.json` file.
 - [x] `pick <url>` — the full flow: normalize URL, add to Pickfile, clone into cache (if not already present), resolve branch/commit, write commit into Pickfile, update cache index.
 - [x] **Git clone wrapper** — a function that clones a repo into the correct cache path (`~/.pickpocket/repos/host/owner/repo/branch/`), with spinner output.
 - [x] `--branch` and `--tag` flags on `pick <url>`.

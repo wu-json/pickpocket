@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 )
 
-const Filename = ".pickpocket"
+const Filename = "pickpocket.json"
 
-// Pickfile represents the contents of a .pickpocket file.
+// Pickfile represents the contents of a pickpocket.json file.
 type Pickfile struct {
 	Picks []Pick `json:"picks"`
 }
@@ -22,7 +22,7 @@ type Pick struct {
 	Tags   []string `json:"tags,omitempty"`
 }
 
-// Discover walks up from startDir to find the nearest .pickpocket file.
+// Discover walks up from startDir to find the nearest pickpocket.json file.
 // Returns the full path to the file, or an error if not found.
 func Discover(startDir string) (string, error) {
 	dir, err := filepath.Abs(startDir)
@@ -67,7 +67,7 @@ func Write(path string, pf *Pickfile) error {
 	data = append(data, '\n')
 
 	dir := filepath.Dir(path)
-	tmp, err := os.CreateTemp(dir, ".pickpocket-*.tmp")
+	tmp, err := os.CreateTemp(dir, "pickpocket-*.tmp")
 	if err != nil {
 		return err
 	}
