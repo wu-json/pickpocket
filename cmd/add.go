@@ -27,15 +27,8 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return cmd.Help()
 	}
 
-	styles := struct {
-		success lipgloss.Style
-		warn    lipgloss.Style
-		info    lipgloss.Style
-	}{
-		success: lipgloss.NewStyle().Foreground(lipgloss.Color("2")),
-		warn:    lipgloss.NewStyle().Foreground(lipgloss.Color("3")),
-		info:    lipgloss.NewStyle().Foreground(lipgloss.Color("6")),
-	}
+	bold := lipgloss.NewStyle().Bold(true)
+	dim := lipgloss.NewStyle().Faint(true)
 
 	// 1. Parse URL
 	parsed, err := giturl.Parse(args[0])
@@ -47,7 +40,6 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	// 2. Resolve branch
 	branch := addBranch
 	if branch == "" {
-		fmt.Fprintln(os.Stderr, styles.info.Render("Detecting default branch..."))
 		branch, err = git.DefaultBranch(normalizedURL)
 		if err != nil {
 			return fmt.Errorf("detecting default branch: %w", err)
@@ -68,7 +60,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		if err := pickfile.Write(pfPath, pf); err != nil {
 			return fmt.Errorf("creating %s: %w", pickfile.Filename, err)
 		}
-		fmt.Fprintln(os.Stderr, styles.info.Render("Created "+pickfile.Filename))
+		fmt.Fprintln(os.Stderr, dim.Render("Created "+pickfile.Filename))
 	}
 
 	// 4. Load Pickfile and add pick
@@ -102,9 +94,7 @@ func runAdd(cmd *cobra.Command, args []string) error {
 	var commitSHA string
 
 	if existing := idx.FindRepo(cacheID); existing != nil {
-		// Already cached
 		commitSHA = existing.Commit
-		fmt.Fprintln(os.Stderr, styles.warn.Render("Already cached: "+cacheID))
 	} else {
 		// 6. Clone with spinner
 		stop := startSpinner("Cloning " + normalizedURL + "@" + branch)
@@ -158,10 +148,11 @@ func runAdd(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("writing lockfile: %w", err)
 	}
 
+	repo := parsed.Owner + "/" + parsed.Repo
 	if alreadyInPickfile {
-		fmt.Fprintln(os.Stderr, styles.success.Render(fmt.Sprintf("Already picked %s@%s", normalizedURL, branch)))
+		fmt.Fprintln(os.Stderr, "✓ "+bold.Render(repo)+dim.Render(" on "+branch))
 	} else {
-		fmt.Fprintln(os.Stderr, styles.success.Render(fmt.Sprintf("Added %s@%s", normalizedURL, branch)))
+		fmt.Fprintln(os.Stderr, "✓ "+bold.Render(repo)+dim.Render(" on "+branch)+" (new)")
 	}
 	return nil
 }
