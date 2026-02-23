@@ -354,12 +354,12 @@ This is optional — `pick <url>` will also create the file if needed.
 - **Confirmation prompts** for destructive actions (remove, cache clean), styled consistently.
 - Fast operations (tag manipulation, path output) should not have spinners — just print results immediately.
 
-#### `pick system-prompt`
+#### `pick prompt`
 
-Output a system prompt that teaches a coding agent what pickpocket is and how to use it. This is the agent integration point — any CLI-based coding agent can run `pick system-prompt` and pipe the output into its context.
+Output a system prompt that teaches a coding agent what pickpocket is and how to use it. This is the agent integration point — any CLI-based coding agent can run `pick prompt` and pipe the output into its context.
 
 ```
-pick system-prompt
+pick prompt
 ```
 
 Behavior:
@@ -371,7 +371,7 @@ Behavior:
    - How to add new repos (`pick <url> --tag <tag>`).
 2. The output is plain text (markdown-formatted), suitable for piping directly into an agent's system prompt or context window.
 
-This makes integration trivial — no config files, no skill installation, no agent-specific formats. Just `pick system-prompt >> context.md` or equivalent.
+This makes integration trivial — no config files, no skill installation, no agent-specific formats. Just `pick prompt >> context.md` or equivalent.
 
 ## Technical Decisions
 
@@ -497,12 +497,12 @@ Deliverables:
 - [x] `pick cache remove <id>` — delete a specific cached clone with confirmation.
 - [x] `pick cache clean` — wipe entire cache with confirmation.
 
-### Phase 9: `pick system-prompt`
+### Phase 9: `pick prompt`
 
 The agent integration layer.
 
 Deliverables:
-- [ ] `pick system-prompt` — outputs a self-contained system prompt to stdout that teaches any coding agent what pickpocket is and how to use it (discover picks, get paths, explore vendored code).
+- [x] `pick prompt` — outputs a self-contained system prompt to stdout that teaches any coding agent what pickpocket is and how to use it (discover picks, get paths, explore vendored code).
 
 ### Phase 10: Polish
 
