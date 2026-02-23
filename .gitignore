@@ -26,6 +26,9 @@ go.work.sum
 .DS_Store
 Thumbs.db
 
+# GoReleaser
+dist/
+
 # Environment
 .env
 .env.*
