@@ -6,7 +6,7 @@ pickpocket lets you declare git repositories in a `pickpocket.json` file, clone 
 
 <img src="docs/assets/cover.png" alt="pickpocket cover" width="100%" /><p align="center"><sub><i>Lupin the Third</i></sub></p>
 
-## How it works
+## How It Works
 
 1. **Declare** repos in a `pickpocket.json` file (the "Pickfile") at your project root
 2. **Install** them with `pick install` — clones go into a shared global cache (`~/.pickpocket/`)
@@ -14,7 +14,7 @@ pickpocket lets you declare git repositories in a `pickpocket.json` file, clone 
 
 Same repo + branch is only cloned once, even across multiple projects. Exact commit SHAs are pinned directly in the `pickpocket.json` file for reproducible setups across your team.
 
-## Using with coding agents
+## Using With Coding Agents
 
 **`pick prompt`** outputs a system prompt that teaches a coding agent how to use pickpocket. Pipe it into your agent's context:
 
@@ -31,7 +31,7 @@ pick open --clean         # Remove all worktrees immediately
 
 Worktrees auto-prune after 24 hours.
 
-## Local development
+## Local Development
 
 **Prerequisites:** Go 1.21+, git, [just](https://github.com/casey/just)
 
@@ -42,7 +42,7 @@ just test         # Run tests
 just vet          # Run vet
 ```
 
-## Project structure
+## Project Structure
 
 ```
 main.go                     # Entry point
