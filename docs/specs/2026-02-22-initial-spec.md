@@ -538,9 +538,9 @@ Deliverables:
 Tag management for organizing picks.
 
 Deliverables:
-- [ ] `pick tag add <id> <tags...>`
-- [ ] `pick tag remove <id> <tags...>`
-- [ ] `pick tag list` — table of tags with pick counts.
+- [x] `pick tag add <id> <tags...>`
+- [x] `pick tag remove <id> <tags...>`
+- [x] `pick tag list` — table of tags with pick counts.
 
 ### Phase 8: `pick doctor` and `pick cache` subcommands
 
