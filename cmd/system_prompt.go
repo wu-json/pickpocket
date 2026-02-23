@@ -43,6 +43,12 @@ The paths returned by ` + "`pick path`" + ` point to full working-tree clones. Y
 var promptCmd = &cobra.Command{
 	Use:   "prompt",
 	Short: "Output a system prompt that teaches a coding agent how to use pickpocket",
+	Long: `Output a system prompt that teaches a coding agent how to use pickpocket.
+
+The prompt is written to stdout so it can be piped directly into an
+agent's context, e.g.:
+
+  pick prompt >> .claude/CLAUDE.md`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Fprint(os.Stdout, systemPrompt)
 		return nil

@@ -20,7 +20,12 @@ var updateTags []string
 var updateCmd = &cobra.Command{
 	Use:   "update [id...]",
 	Short: "Fetch the latest commits for picks",
-	RunE:  runUpdate,
+	Long: `Fetch the latest commits for picks.
+
+By default, all cached picks are updated. Pass one or more pick IDs as
+positional arguments to update only those picks, or use --tag to filter
+by tag. Picks that are not yet cached are skipped with a warning.`,
+	RunE: runUpdate,
 }
 
 func init() {
@@ -75,20 +80,15 @@ func runUpdate(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		// By positional cache IDs
 		for _, targetID := range args {
-			found := false
+			pick, _, err := findPickByID(pf, targetID)
+			if err != nil {
+				return err
+			}
 			for i, p := range pf.Picks {
-				parsed, err := giturl.Parse(p.URL)
-				if err != nil {
-					continue
-				}
-				if parsed.CacheID(p.Branch) == targetID {
+				if p.URL == pick.URL && p.Branch == pick.Branch {
 					targets = append(targets, indexedPick{index: i, pick: p})
-					found = true
 					break
 				}
-			}
-			if !found {
-				return fmt.Errorf("no pick found matching %q", targetID)
 			}
 		}
 	} else if len(updateTags) > 0 {

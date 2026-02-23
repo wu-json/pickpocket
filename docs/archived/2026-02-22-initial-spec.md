@@ -1,7 +1,7 @@
 # pickpocket - Vendored Clone Manager for LLM Context
 
 **Date:** 2026-02-22
-**Status:** Draft
+**Status:** Implemented
 
 ## Overview
 
@@ -509,8 +509,8 @@ Deliverables:
 Final UX pass before calling it v1. All output should follow a **minimalist, monochrome TUI style** — no color, no emoji, just clean text with bold/dim/faint for hierarchy. Think `gh`, not rainbow.
 
 Deliverables:
-- [ ] Minimalist monochrome TUI style across all commands — strip color, use bold/dim only, clean alignment.
-- [ ] Consistent error formatting across all commands.
-- [ ] Edge case handling: network failures, corrupt cache, missing `.git` directories, permission errors.
-- [ ] Helpful messages: "did you mean X?", suggestions when commands fail.
-- [ ] README and `--help` text for every command.
+- [x] Minimalist monochrome TUI style across all commands — strip color, use bold/dim only, clean alignment.
+- [x] Consistent error formatting across all commands.
+- [x] Edge case handling: network failures, corrupt cache, missing `.git` directories, permission errors.
+- [x] Helpful messages: "did you mean X?", suggestions when commands fail.
+- [x] README and `--help` text for every command.

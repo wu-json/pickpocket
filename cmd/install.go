@@ -26,7 +26,13 @@ type installResult struct {
 var installCmd = &cobra.Command{
 	Use:   "install",
 	Short: "Clone or update all picks declared in the Pickfile",
-	RunE:  runInstall,
+	Long: `Clone or update all picks declared in the Pickfile.
+
+Picks are cloned in parallel (up to 4 at a time) into the global cache
+at ~/.pickpocket/. If a pick is already cached at the pinned commit, it
+is skipped. If the pick has a commit pin that differs from the cache,
+a fetch + checkout is performed.`,
+	RunE: runInstall,
 }
 
 func init() {

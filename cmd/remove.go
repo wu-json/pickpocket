@@ -8,7 +8,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
-	"github.com/wu-json/pickpocket/internal/giturl"
 	"github.com/wu-json/pickpocket/internal/pickfile"
 )
 
@@ -17,8 +16,13 @@ var removeForce bool
 var removeCmd = &cobra.Command{
 	Use:   "remove <id>",
 	Short: "Remove a pick from the Pickfile",
-	Args:  cobra.ExactArgs(1),
-	RunE:  runRemove,
+	Long: `Remove a pick from the Pickfile.
+
+This only removes the entry from pickpocket.json — the cached clone in
+~/.pickpocket/ is left intact. Use 'pick cache remove' to delete a
+cached clone from disk.`,
+	Args: cobra.ExactArgs(1),
+	RunE: runRemove,
 }
 
 func init() {
@@ -47,23 +51,9 @@ func runRemove(cmd *cobra.Command, args []string) error {
 
 	// 2. Find pick by cache ID
 	targetID := args[0]
-	var pick *pickfile.Pick
-	var parsed giturl.ParsedURL
-
-	for i, p := range pf.Picks {
-		pu, err := giturl.Parse(p.URL)
-		if err != nil {
-			continue
-		}
-		if pu.CacheID(p.Branch) == targetID {
-			pick = &pf.Picks[i]
-			parsed = pu
-			break
-		}
-	}
-
-	if pick == nil {
-		return fmt.Errorf("no pick found matching %q", targetID)
+	pick, parsed, err := findPickByID(pf, targetID)
+	if err != nil {
+		return err
 	}
 
 	repo := parsed.Owner + "/" + parsed.Repo

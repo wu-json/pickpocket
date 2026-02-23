@@ -29,8 +29,10 @@ fast, local access to external codebases as context.
 Usage:
   pick <url>           Add a git repository to the Pickfile
   pick [command]       Run a subcommand`,
-	Args: cobra.MaximumNArgs(1),
-	RunE: runAdd,
+	Args:          cobra.MaximumNArgs(1),
+	RunE:          runAdd,
+	SilenceErrors: true,
+	SilenceUsage:  true,
 }
 
 func init() {
@@ -41,7 +43,7 @@ func init() {
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(1)
 	}
 }

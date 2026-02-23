@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -23,6 +24,11 @@ var (
 var cacheCmd = &cobra.Command{
 	Use:   "cache",
 	Short: "Manage the global pickpocket cache",
+	Long: `Manage the global pickpocket cache.
+
+Cloned repositories are stored in ~/.pickpocket/ and shared across all
+projects. Use 'cache list' to see what's cached, 'cache remove' to
+delete a single entry, or 'cache clean' to wipe everything.`,
 }
 
 var cacheListCmd = &cobra.Command{
@@ -165,7 +171,11 @@ func runCacheRemove(cmd *cobra.Command, args []string) error {
 	targetID := args[0]
 	repo := idx.FindRepo(targetID)
 	if repo == nil {
-		return fmt.Errorf("no cached repo found matching %q", targetID)
+		msg := fmt.Sprintf("no cached repo found matching %q", targetID)
+		if s := suggestID(targetID, collectCacheIDs(idx)); s != "" {
+			msg += fmt.Sprintf("\n\n  did you mean %s?", s)
+		}
+		return errors.New(msg)
 	}
 
 	// Confirmation prompt

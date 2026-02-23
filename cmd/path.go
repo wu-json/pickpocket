@@ -65,20 +65,11 @@ func runPath(cmd *cobra.Command, args []string) error {
 
 	if len(args) > 0 {
 		// Find single pick by cache ID
-		targetID := args[0]
-		for _, p := range pf.Picks {
-			parsed, err := giturl.Parse(p.URL)
-			if err != nil {
-				continue
-			}
-			if parsed.CacheID(p.Branch) == targetID {
-				picks = append(picks, p)
-				break
-			}
+		pick, _, err := findPickByID(pf, args[0])
+		if err != nil {
+			return err
 		}
-		if len(picks) == 0 {
-			return fmt.Errorf("no pick found matching %q", targetID)
-		}
+		picks = append(picks, *pick)
 	} else if len(pathTags) > 0 {
 		picks = pf.FindByTag(pathTags)
 	} else {

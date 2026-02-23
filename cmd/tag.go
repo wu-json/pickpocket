@@ -8,7 +8,6 @@ import (
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
-	"github.com/wu-json/pickpocket/internal/giturl"
 	"github.com/wu-json/pickpocket/internal/pickfile"
 )
 
@@ -228,18 +227,4 @@ func runTagList(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-// findPickByID resolves a pick by its cache ID.
-func findPickByID(pf *pickfile.Pickfile, id string) (*pickfile.Pick, giturl.ParsedURL, error) {
-	for i, p := range pf.Picks {
-		pu, err := giturl.Parse(p.URL)
-		if err != nil {
-			continue
-		}
-		if pu.CacheID(p.Branch) == id {
-			return &pf.Picks[i], pu, nil
-		}
-	}
-	return nil, giturl.ParsedURL{}, fmt.Errorf("no pick found matching %q", id)
 }
