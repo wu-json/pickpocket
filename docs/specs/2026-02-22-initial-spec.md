@@ -493,9 +493,9 @@ Deliverables:
 Cache management.
 
 Deliverables:
-- [ ] `pick cache list` — table of all globally cached repos with disk size per repo and total usage summary.
-- [ ] `pick cache remove <id>` — delete a specific cached clone with confirmation.
-- [ ] `pick cache clean` — wipe entire cache with confirmation.
+- [x] `pick cache list` — table of all globally cached repos with disk size per repo and total usage summary.
+- [x] `pick cache remove <id>` — delete a specific cached clone with confirmation.
+- [x] `pick cache clean` — wipe entire cache with confirmation.
 
 ### Phase 9: `pick system-prompt`
 
