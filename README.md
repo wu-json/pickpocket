@@ -6,6 +6,12 @@ pickpocket lets you declare git repositories in a `pickpocket.json` file, clone 
 
 <img src="docs/assets/cover.png" alt="pickpocket cover" width="100%" /><p align="center"><sub><i>"If you don't watch out, someone might end up cloning you! I don't want that happening to me! I'm an original!" — Lupin the Third</i></sub></p>
 
+## Installation
+
+```bash
+brew install wu-json/asahi/pickpocket
+```
+
 ## How It Works
 
 1. **Declare** repos in a `pickpocket.json` file (the "Pickfile") at your project root
