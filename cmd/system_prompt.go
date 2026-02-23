@@ -25,7 +25,9 @@ Use these paths to read files and grep through vendored code directly on the fil
 
 ## Explore vendored code
 
-The paths returned by ` + "`pick path`" + ` point to full working-tree clones. You can read any file, search with grep, or browse directory listings at those paths — just like any local code.
+**Always use ` + "`pick open <id>`" + ` to create a temporary worktree before exploring vendored code.** This gives you a writable copy in ` + "`/tmp/pickpocket/`" + ` where you can freely read, grep, build, and experiment without touching the cached clone. Worktrees auto-prune after 24 hours, or you can run ` + "`pick open --clean`" + ` to remove them immediately.
+
+Prefer ` + "`pick open`" + ` over reading directly from ` + "`pick path`" + ` paths, which point to the shared cache and should be treated as read-only.
 
 ## Add new repos
 
@@ -36,7 +38,6 @@ The paths returned by ` + "`pick path`" + ` point to full working-tree clones. Y
 ## Other useful commands
 
 - ` + "`pick info <id>`" + ` — detailed info about a specific pick
-- ` + "`pick open <id>`" + ` — create an ephemeral writable worktree for builds or experiments
 - ` + "`pick update`" + ` — fetch latest commits for all picks
 `
 
