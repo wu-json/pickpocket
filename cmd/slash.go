@@ -10,8 +10,8 @@ import (
 
 var slashCmd = &cobra.Command{
 	Use:   "slash",
-	Short: "Install the pickpocket slash command for a coding agent",
-	Long: `Install the pickpocket slash command for a coding agent.
+	Short: "Install the pick slash command for a coding agent",
+	Long: `Install the pick slash command for a coding agent.
 
 Use 'slash claude' to install for Claude Code or 'slash codex' to install
 for Codex CLI.`,
@@ -19,13 +19,13 @@ for Codex CLI.`,
 
 var slashClaudeCmd = &cobra.Command{
 	Use:   "claude",
-	Short: "Install /pickpocket slash command for Claude Code",
+	Short: "Install /pick slash command for Claude Code",
 	RunE:  runSlashClaude,
 }
 
 var slashCodexCmd = &cobra.Command{
 	Use:   "codex",
-	Short: "Install /pickpocket slash command for Codex CLI",
+	Short: "Install /pick slash command for Codex CLI",
 	RunE:  runSlashCodex,
 }
 
@@ -43,11 +43,11 @@ func runSlashClaude(cmd *cobra.Command, args []string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("creating directory: %w", err)
 	}
-	path := filepath.Join(dir, "pickpocket.md")
+	path := filepath.Join(dir, "pick.md")
 	if err := os.WriteFile(path, []byte(systemPrompt), 0o644); err != nil {
 		return fmt.Errorf("writing slash command: %w", err)
 	}
-	fmt.Fprintln(os.Stderr, "Installed /pickpocket slash command for Claude Code")
+	fmt.Fprintln(os.Stderr, "Installed /pick slash command for Claude Code")
 	return nil
 }
 
@@ -60,10 +60,10 @@ func runSlashCodex(cmd *cobra.Command, args []string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("creating directory: %w", err)
 	}
-	path := filepath.Join(dir, "pickpocket.md")
+	path := filepath.Join(dir, "pick.md")
 	if err := os.WriteFile(path, []byte(systemPrompt), 0o644); err != nil {
 		return fmt.Errorf("writing slash command: %w", err)
 	}
-	fmt.Fprintln(os.Stderr, "Installed /pickpocket slash command for Codex CLI")
+	fmt.Fprintln(os.Stderr, "Installed /pick slash command for Codex CLI")
 	return nil
 }

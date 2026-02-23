@@ -25,8 +25,8 @@ Same repo + branch is only cloned once, even across multiple projects. Exact com
 **`pick slash`** installs a slash command that teaches a coding agent how to use pickpocket:
 
 ```bash
-pick slash claude   # Install /pickpocket for Claude Code
-pick slash codex    # Install /pickpocket for Codex CLI
+pick slash claude   # Install /pick for Claude Code
+pick slash codex    # Install /pick for Codex CLI
 ```
 
 **`pick open <id>`** creates an ephemeral writable worktree in `/tmp/pickpocket/` — a playground copy of vendored code that agents can freely modify, build, and experiment in without touching the cached clone.
