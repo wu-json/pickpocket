@@ -46,7 +46,7 @@ Perhaps eating faster makes me absorb less nutrients, and makes me feel sick aft
 day the meal that the chef so graciously prepared is now in my stomach. Sometimes I eat fast when there's a lot of 
 shit to do. Other times, I like taking my time.
 
-Either way, I'm hungry and won't let the food go to waste.
+Either way, I'm hungry and won't let that food go to waste.
 
 ## Local Development
 
