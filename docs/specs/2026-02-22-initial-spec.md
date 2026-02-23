@@ -284,48 +284,6 @@ pick info github.com/anthropics/claude-code@main
 
 Output: formatted display of Pickfile entry (url, branch, tags) plus cache state (full commit SHA, disk path, timestamps, disk size).
 
-#### `pick doctor`
-
-Health check and stats overview, scoped to the current project's picks.
-
-```
-pick doctor
-```
-
-Output: a styled dashboard showing:
-
-```
-pickpocket doctor
-
-  Project      /Users/you/myproject/pickpocket.json
-  Picks        12 entries, 8 tags
-
-  Cache        ~/.pickpocket/
-  Disk Usage
-  Total        1.34 GB  (this project's picks)
-  Largest      github.com/chromium/chromium@main   892 MB
-  Smallest     github.com/charmbracelet/glow@main    4 MB
-  Average      112 MB
-
-  Top Tags
-  agent        5 picks    620 MB
-  frontend     3 picks    210 MB
-  cli          4 picks    510 MB
-
-  Health
-  ✓ All picks are cached
-  ✓ All cached repos have valid git state
-  ✗ 2 picks have not been updated in over 30 days
-    - github.com/some/old-repo@main (47 days)
-    - github.com/another/stale-one@main (33 days)
-```
-
-Checks performed:
-- **Cache completeness** — every Pickfile entry has a corresponding cached clone.
-- **Git state** — each cached clone has a valid `.git` directory and the tracked branch exists.
-- **Staleness** — flag picks that haven't been updated in over 30 days.
-- **Disk usage** — compute per-repo, per-tag, and total size for this project's picks.
-
 #### `pick cache <subcommand>`
 
 Manage the global cache directly. These commands operate on `~/.pickpocket/`, independent of any project Pickfile.
@@ -338,7 +296,7 @@ List all repos in the global cache.
 pick cache list
 ```
 
-Output: a table showing id, branch, commit (short), disk size, and last updated time.
+Output: a table showing id, branch, commit (short), disk size, and last updated time. Includes a total disk usage summary line at the bottom.
 
 ##### `pick cache remove <id> [flags]`
 
@@ -530,16 +488,14 @@ Deliverables:
 - [x] `pick tag remove <id> <tags...>`
 - [x] `pick tag list` — table of tags with pick counts.
 
-### Phase 8: `pick doctor` and `pick cache` subcommands
+### Phase 8: `pick cache` subcommands
 
-Diagnostics and cache management.
+Cache management.
 
 Deliverables:
-- [ ] `pick doctor` — styled dashboard: cache completeness, git state validation, staleness warnings, disk usage stats.
-- [ ] `pick cache list` — table of all globally cached repos.
+- [ ] `pick cache list` — table of all globally cached repos with disk size per repo and total usage summary.
 - [ ] `pick cache remove <id>` — delete a specific cached clone with confirmation.
 - [ ] `pick cache clean` — wipe entire cache with confirmation.
-- [ ] Cache locking (`~/.pickpocket/cache.lock`) for concurrent access safety.
 
 ### Phase 9: `pick system-prompt`
 
