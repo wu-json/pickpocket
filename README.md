@@ -12,7 +12,7 @@ pickpocket lets you declare git repositories in a `pickpocket.json` file, clone 
 brew install wu-json/asahi/pickpocket
 ```
 
-## How It Works
+## Usage For Humans
 
 1. **Declare** repos in a `pickpocket.json` file (the "Pickfile") at your project root
 2. **Install** them with `pick install` — clones go into a shared global cache (`~/.pickpocket/`)
@@ -20,7 +20,7 @@ brew install wu-json/asahi/pickpocket
 
 Same repo + branch is only cloned once, even across multiple projects. Exact commit SHAs are pinned directly in the `pickpocket.json` file for reproducible setups across your team.
 
-## Using With Coding Agents
+## Usage For Coding Agents
 
 **`pick slash`** installs a slash command that teaches a coding agent how to use pickpocket:
 
@@ -37,6 +37,16 @@ pick open --clean         # Remove all worktrees immediately
 ```
 
 Worktrees auto-prune after 24 hours.
+
+## Is Using OSS For Agent Context Stealing?
+
+I equate the ethics behind this question to eating faster. Whether I choose to scarf down my food like [Kobayashi](https://en.wikipedia.org/wiki/Takeru_Kobayashi) in his prime or savor every last bite down to the bone, it doesn't say anything about how much I respect the food.
+
+Perhaps eating faster makes me absorb less nutrients, and makes me feel sick afterwards, but at the end of the 
+day the meal that the chef so graciously prepared is now in my stomach. Sometimes I eat fast when there's a lot of 
+shit to do. Other times, I like taking my time.
+
+Either way, I'm hungry and won't let the food go to waste.
 
 ## Local Development
 
