@@ -46,10 +46,9 @@ var promptCmd = &cobra.Command{
 	Short: "Output a system prompt that teaches a coding agent how to use pickpocket",
 	Long: `Output a system prompt that teaches a coding agent how to use pickpocket.
 
-The prompt is written to stdout so it can be piped directly into an
-agent's context, e.g.:
-
-  pick prompt >> .claude/CLAUDE.md`,
+The prompt is written to stdout so it can be piped into an agent's context.
+For a quicker setup, use 'pick slash claude' or 'pick slash codex' to install
+the prompt as a slash command directly.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		fmt.Fprint(os.Stdout, systemPrompt)
 		return nil

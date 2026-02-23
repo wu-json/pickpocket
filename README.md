@@ -16,10 +16,11 @@ Same repo + branch is only cloned once, even across multiple projects. Exact com
 
 ## Using With Coding Agents
 
-**`pick prompt`** outputs a system prompt that teaches a coding agent how to use pickpocket. Pipe it into your agent's context:
+**`pick slash`** installs a slash command that teaches a coding agent how to use pickpocket:
 
 ```bash
-pick prompt >> .claude/CLAUDE.md
+pick slash claude   # Install /pickpocket for Claude Code
+pick slash codex    # Install /pickpocket for Codex CLI
 ```
 
 **`pick open <id>`** creates an ephemeral writable worktree in `/tmp/pickpocket/` — a playground copy of vendored code that agents can freely modify, build, and experiment in without touching the cached clone.
@@ -40,29 +41,4 @@ git clone https://github.com/wu-json/pickpocket.git && cd pickpocket
 just build        # Build binary → ./pick
 just test         # Run tests
 just vet          # Run vet
-```
-
-## Project Structure
-
-```
-main.go                     # Entry point
-cmd/                        # Cobra command handlers
-  root.go                   #   Root command + pick <url> shortcut
-  add.go                    #   pick add
-  install.go                #   pick install
-  path.go                   #   pick path
-  list.go                   #   pick list
-  tag.go                    #   pick tag (add/remove/list)
-  update.go                 #   pick update
-  remove.go                 #   pick remove
-  open.go                   #   pick open (ephemeral worktrees)
-  info.go                   #   pick info
-  cache.go                  #   pick cache (list/remove/clean)
-  init.go                   #   pick init
-  system_prompt.go          #   pick prompt
-internal/
-  pickfile/                 # pickpocket.json read/write/discovery
-  git/                      # Git CLI wrapper (clone, worktrees, branch detection)
-  giturl/                   # URL parsing and normalization
-  cache/                    # Global cache index (~/.pickpocket/cache.json)
 ```
