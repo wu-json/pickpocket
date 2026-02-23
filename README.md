@@ -54,7 +54,3 @@ internal/
   pickfile/                 # pickpocket.json file read/write/discovery
 cache/                    # Global cache index (~/.pickpocket/cache.json)
 ```
-
-## License
-
-MIT
