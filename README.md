@@ -4,7 +4,7 @@ A CLI tool for managing vendored git clones as LLM context.
 
 pickpocket lets you declare git repositories in a `pickpocket.json` file, clone them into a global cache, and give your LLM coding agents fast, local access to external codebases as context.
 
-<img src="docs/assets/cover.png" alt="pickpocket cover" width="100%" /><p align="center"><sub><i>Lupin the Third</i></sub></p>
+<img src="docs/assets/cover.png" alt="pickpocket cover" width="100%" /><p align="center"><sub><i>"If you don't watch out, someone might end up cloning you! I don't want that happening to me! I'm an original!" — Lupin the Third</i></sub></p>
 
 ## How It Works
 
