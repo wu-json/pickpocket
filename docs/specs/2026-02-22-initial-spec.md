@@ -396,36 +396,24 @@ This is optional — `pick <url>` will also create the file if needed.
 - **Confirmation prompts** for destructive actions (remove, cache clean), styled consistently.
 - Fast operations (tag manipulation, path output) should not have spinners — just print results immediately.
 
-## Claude Code Agent Skill
+#### `pick system-prompt`
 
-Provide a Claude Code slash command / agent skill that teaches the coding agent how to use pickpocket to discover relevant vendored context.
+Output a system prompt that teaches a coding agent what pickpocket is and how to use it. This is the agent integration point — any CLI-based coding agent can run `pick system-prompt` and pipe the output into its context.
 
-The skill should be installable (as a `.md` file in the user's Claude Code skills directory or similar mechanism) and should instruct the agent to:
-
-1. Run `pick list --json` to discover available picks and their tags for the current project.
-2. Use `pick path --tag <tag>` to get filesystem paths for relevant cached clones.
-3. Explore those paths using file reading and grep tools to gather context.
-4. Reference the vendored code when answering questions or generating code.
-
-Example skill prompt (rough draft):
-
-```markdown
-# Skill: pickpocket-context
-
-When the user asks you to reference external code, or when you need context from
-a vendored repository:
-
-1. Run `pick list --json` to see this project's vendored repositories and their tags.
-2. Identify which repositories are relevant based on tags and names.
-3. Run `pick path --tag <relevant-tag>` to get filesystem paths.
-4. Use Read and Grep tools to explore the code at those paths.
-5. Use what you find as context for your response.
-
-If no picks are available, inform the user they can add repos with:
-  pick <github-url> --tag <tag>
+```
+pick system-prompt
 ```
 
-The exact skill format and installation mechanism should follow whatever Claude Code supports at build time.
+Behavior:
+1. Print a self-contained system prompt to stdout explaining:
+   - What pickpocket is and how it works.
+   - How to discover available picks (`pick list --json`).
+   - How to get filesystem paths for relevant repos (`pick path`, `pick path --tag <tag>`).
+   - How to explore vendored code at those paths using file reading and grep.
+   - How to add new repos (`pick <url> --tag <tag>`).
+2. The output is plain text (markdown-formatted), suitable for piping directly into an agent's system prompt or context window.
+
+This makes integration trivial — no config files, no skill installation, no agent-specific formats. Just `pick system-prompt >> context.md` or equivalent.
 
 ## Technical Decisions
 
@@ -553,19 +541,19 @@ Deliverables:
 - [ ] `pick cache clean` — wipe entire cache with confirmation.
 - [ ] Cache locking (`~/.pickpocket/cache.lock`) for concurrent access safety.
 
-### Phase 9: Claude Code agent skill
+### Phase 9: `pick system-prompt`
 
 The agent integration layer.
 
 Deliverables:
-- [ ] A `.md` skill file that teaches Claude Code how to use `pick list --json` and `pick path --tag` to discover and read vendored context.
-- [ ] Installation instructions / mechanism appropriate to Claude Code's skill system.
+- [ ] `pick system-prompt` — outputs a self-contained system prompt to stdout that teaches any coding agent what pickpocket is and how to use it (discover picks, get paths, explore vendored code).
 
 ### Phase 10: Polish
 
-Final UX pass before calling it v1.
+Final UX pass before calling it v1. All output should follow a **minimalist, monochrome TUI style** — no color, no emoji, just clean text with bold/dim/faint for hierarchy. Think `gh`, not rainbow.
 
 Deliverables:
+- [ ] Minimalist monochrome TUI style across all commands — strip color, use bold/dim only, clean alignment.
 - [ ] Consistent error formatting across all commands.
 - [ ] Edge case handling: network failures, corrupt cache, missing `.git` directories, permission errors.
 - [ ] Helpful messages: "did you mean X?", suggestions when commands fail.
