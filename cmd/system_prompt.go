@@ -9,29 +9,35 @@ import (
 
 const systemPrompt = `# Pickpocket — Vendored Clone Manager for LLM Context
 
-This project uses **pickpocket** to manage vendored git clones as LLM context. Repositories are declared in a ` + "`pickpocket.json`" + ` file and cloned into a local ` + "`.picks/`" + ` directory, giving you fast, local access to external codebases.
+This project uses **pickpocket** to manage vendored git clones as LLM context. Repositories are declared in a ` + "`pickpocket.json`" + ` file and installed into a global cache, giving you fast, local access to external codebases.
 
-## Discover available picks
+## Workflow
 
-Run ` + "`pick list --json`" + ` to see all declared picks with their URL, branch, commit, and tags.
+### 1. List picks to discover IDs
 
-## Get filesystem paths
+Run ` + "`pick list`" + ` to see all declared picks. The **ID** column (e.g. ` + "`github.com/user/repo@main`" + `) is how you reference a pick in every other command.
 
-- ` + "`pick path`" + ` — print absolute paths to all vendored repos, one per line
-- ` + "`pick path <id>`" + ` — print the absolute path to a specific repo
+Use ` + "`pick list --json`" + ` for machine-readable output with URL, branch, commit, and tags.
+
+### 2. Open a pick for exploration
+
+` + "`pick open <id>`" + ` creates an ephemeral writable worktree in ` + "`/tmp/pickpocket/`" + ` and prints the path to stdout. The ` + "`<id>`" + ` **must** be a value from the ID column of ` + "`pick list`" + `.
+
+Example: ` + "`pick open github.com/user/repo@main`" + `
+
+Use this worktree to freely read, grep, build, and experiment without touching the cached clone. Worktrees auto-prune after 24 hours, or run ` + "`pick open --clean`" + ` to remove them immediately.
+
+**Prefer ` + "`pick open`" + ` over ` + "`pick path`" + `** — paths from ` + "`pick path`" + ` point to the shared cache and should be treated as read-only.
+
+### 3. Get filesystem paths (read-only)
+
+- ` + "`pick path`" + ` — print absolute cache paths for all picks
+- ` + "`pick path <id>`" + ` — print the cache path for a specific pick
 - ` + "`pick path --tag <tag>`" + ` — print paths filtered by tag
-
-Use these paths to read files and grep through vendored code directly on the filesystem.
-
-## Explore vendored code
-
-**Always use ` + "`pick open <id>`" + ` to create a temporary worktree before exploring vendored code.** This gives you a writable copy in ` + "`/tmp/pickpocket/`" + ` where you can freely read, grep, build, and experiment without touching the cached clone. Worktrees auto-prune after 24 hours, or you can run ` + "`pick open --clean`" + ` to remove them immediately.
-
-Prefer ` + "`pick open`" + ` over reading directly from ` + "`pick path`" + ` paths, which point to the shared cache and should be treated as read-only.
 
 ## Add new repos
 
-` + "`" + `pick <url>` + "`" + ` adds a repo to the Pickfile and clones it. Optional flags:
+` + "`pick <url>`" + ` adds a repo to the Pickfile and clones it. Optional flags:
 - ` + "`--tag <tag>`" + ` (repeatable) — attach tags for filtering
 - ` + "`--branch <branch>`" + ` — track a specific branch
 
