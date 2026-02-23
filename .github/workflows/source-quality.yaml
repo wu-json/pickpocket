@@ -16,9 +16,9 @@ jobs:
           go-version-file: go.mod
 
       - name: Install aqua
-        uses: aquaproj/aqua-installer@ea518c135a02fc11ff8024364510c181a5c6b342 # v4.0.3
+        uses: aquaproj/aqua-installer@f6be09d5313d3af86e3ad665911c67b149a4498c # v4.0.4
         with:
-          aqua_version: v2.43.1
+          aqua_version: v2.56.6
 
       - name: Build
         run: just build
