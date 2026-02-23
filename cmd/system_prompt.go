@@ -17,7 +17,9 @@ This project uses **pickpocket** to manage vendored git clones as LLM context. R
 
 Run ` + "`pick list`" + ` to see all declared picks. The **ID** column (e.g. ` + "`github.com/user/repo@main`" + `) is how you reference a pick in every other command.
 
-Use ` + "`pick list --json`" + ` for machine-readable output with URL, branch, commit, and tags.
+- ` + "`pick tag list`" + ` — list all tags in use (run this first to discover available tags)
+- ` + "`pick list --tag <tag>`" + ` — filter picks by tag
+- ` + "`pick list --json`" + ` — machine-readable output with URL, branch, commit, and tags
 
 ### 2. Open a pick for exploration
 
