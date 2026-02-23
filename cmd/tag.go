@@ -171,7 +171,8 @@ func runTagList(cmd *cobra.Command, args []string) error {
 
 	pfPath, err := pickfile.Discover(cwd)
 	if err != nil {
-		return fmt.Errorf("no %s found: %w", pickfile.Filename, err)
+		fmt.Fprintln(os.Stderr, dim.Render("No pickpocket.json found. Run `pick init` to get started."))
+		return nil
 	}
 
 	pf, err := pickfile.Load(pfPath)

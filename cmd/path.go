@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
 	"github.com/wu-json/pickpocket/internal/cache"
 	"github.com/wu-json/pickpocket/internal/giturl"
@@ -35,6 +36,8 @@ func init() {
 }
 
 func runPath(cmd *cobra.Command, args []string) error {
+	dim := lipgloss.NewStyle().Faint(true)
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)
@@ -42,7 +45,8 @@ func runPath(cmd *cobra.Command, args []string) error {
 
 	pfPath, err := pickfile.Discover(cwd)
 	if err != nil {
-		return fmt.Errorf("no %s found: %w", pickfile.Filename, err)
+		fmt.Fprintln(os.Stderr, dim.Render("No pickpocket.json found. Run `pick init` to get started."))
+		return nil
 	}
 
 	pf, err := pickfile.Load(pfPath)
