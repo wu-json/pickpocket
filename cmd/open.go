@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"crypto/rand"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -96,7 +97,7 @@ func runOpen(cmd *cobra.Command, args []string) error {
 	if len(shortCommit) > 7 {
 		shortCommit = shortCommit[:7]
 	}
-	wtDir := fmt.Sprintf("%s-%s-%s", parsed.Repo, pick.Branch, shortCommit)
+	wtDir := fmt.Sprintf("%s-%s-%s-%s", parsed.Repo, pick.Branch, shortCommit, randomSuffix(4))
 	wtPath := filepath.Join("/tmp", "pickpocket", wtDir)
 
 	// Create worktree
@@ -118,6 +119,12 @@ func runOpen(cmd *cobra.Command, args []string) error {
 	// Print path to stdout
 	fmt.Fprintln(os.Stdout, wtPath)
 	return nil
+}
+
+func randomSuffix(n int) string {
+	b := make([]byte, n)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
 
 func runOpenClean(idx *cache.Index, idxPath string, repoDirFn func(string) string) error {
